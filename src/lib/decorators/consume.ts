@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {ReactiveElement} from '@lit/reactive-element';
+import type {FASTElement} from '@microsoft/fast-element';
 import {ContextConsumer} from '../controllers/context-consumer.js';
 import {Context} from '../create-context.js';
 
@@ -47,14 +47,14 @@ export function consume<ValueType>({
   context: Context<unknown, ValueType>;
   subscribe?: boolean;
 }): ConsumeDecorator<ValueType> {
-  return (<C extends ReactiveElement, V extends ValueType>(
+  return (<C extends FASTElement, V extends ValueType>(
     protoOrTarget: ClassAccessorDecoratorTarget<C, V>,
     nameOrContext: PropertyKey | ClassAccessorDecoratorContext<C, V>
   ) => {
     if (typeof nameOrContext === 'object') {
       // Standard decorators branch
-      nameOrContext.addInitializer(function (this: ReactiveElement): void {
-        new ContextConsumer(this, {
+      nameOrContext.addInitializer(function (this: FASTElement): void {
+        const consumer = new ContextConsumer({
           context,
           callback: (value: ValueType) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,12 +62,13 @@ export function consume<ValueType>({
           },
           subscribe,
         });
+        this.$fastController.addBehaviors([consumer]);
       });
     } else {
       // Experimental decorators branch
-      (protoOrTarget.constructor as typeof ReactiveElement).addInitializer(
-        (element: ReactiveElement): void => {
-          new ContextConsumer(element, {
+      (protoOrTarget.constructor as any).addInitializer(
+        (element: FASTElement): void => {
+          const consumer = new ContextConsumer({
             context,
             callback: (value: ValueType) => {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -75,6 +76,7 @@ export function consume<ValueType>({
             },
             subscribe,
           });
+          element.$fastController.addBehaviors([consumer]);
         }
       );
     }
@@ -94,7 +96,7 @@ type ConsumeDecorator<ValueType> = {
   // legacy
   <
     K extends PropertyKey,
-    Proto extends Interface<Omit<ReactiveElement, 'renderRoot'>>
+    Proto extends Interface<FASTElement>
   >(
     protoOrDescriptor: Proto,
     name?: K
@@ -102,7 +104,7 @@ type ConsumeDecorator<ValueType> = {
 
   // standard
   <
-    C extends Interface<Omit<ReactiveElement, 'renderRoot'>>,
+    C extends Interface<FASTElement>,
     V extends ValueType
   >(
     value: ClassAccessorDecoratorTarget<C, V>,

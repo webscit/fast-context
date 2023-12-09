@@ -5,15 +5,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+import type {Behavior, FASTElement} from '@microsoft/fast-element'
+import {observable} from '@microsoft/fast-element'
 import {
   ContextCallback,
   ContextRequestEvent,
 } from '../context-request-event.js';
 import type {Context, ContextType} from '../create-context.js';
-import type {
-  ReactiveController,
-  ReactiveControllerHost,
-} from '@lit/reactive-element';
+
 
 export interface Options<C extends Context<unknown, unknown>> {
   context: C;
@@ -22,7 +21,7 @@ export interface Options<C extends Context<unknown, unknown>> {
 }
 
 /**
- * A ReactiveController which adds context consuming behavior to a custom
+ * A Behavior which adds context consuming behavior to a custom
  * element by dispatching `context-request` events.
  *
  * When the host element is connected to the document it will emit a
@@ -35,49 +34,34 @@ export interface Options<C extends Context<unknown, unknown>> {
  */
 export class ContextConsumer<
   C extends Context<unknown, unknown>,
-  HostElement extends ReactiveControllerHost & HTMLElement
-> implements ReactiveController
+  HostElement extends FASTElement = FASTElement
+> implements Behavior
 {
-  protected host: HostElement;
+  protected host: HostElement | null = null;
   private context: C;
   private callback?: (value: ContextType<C>, dispose?: () => void) => void;
   private subscribe = false;
 
   private provided = false;
 
-  value?: ContextType<C> = undefined;
+  @observable value?: ContextType<C> = undefined;
 
-  constructor(host: HostElement, options: Options<C>);
-  /** @deprecated Use new ContextConsumer(host, options) */
-  constructor(
-    host: HostElement,
-    context: C,
-    callback?: (value: ContextType<C>, dispose?: () => void) => void,
-    subscribe?: boolean
-  );
-  constructor(
-    host: HostElement,
-    contextOrOptions: C | Options<C>,
-    callback?: (value: ContextType<C>, dispose?: () => void) => void,
-    subscribe?: boolean
-  ) {
-    this.host = host;
+  constructor(options: Options<C>) {
     // This is a potentially fragile duck-type. It means a context object can't
     // have a property name context and be used in positional argument form.
-    if ((contextOrOptions as Options<C>).context !== undefined) {
-      const options = contextOrOptions as Options<C>;
-      this.context = options.context;
-      this.callback = options.callback;
-      this.subscribe = options.subscribe ?? false;
-    } else {
-      this.context = contextOrOptions as C;
-      this.callback = callback;
-      this.subscribe = subscribe ?? false;
-    }
-    this.host.addController(this);
+    this.context = options.context;
+    this.callback = options.callback;
+    this.subscribe = options.subscribe ?? false;
   }
 
-  private unsubscribe?: () => void;
+  bind(source: HostElement): void {
+    this.host = source;
+    this.hostConnected();
+  }
+
+  unbind(): void {
+    this.hostDisconnected()
+  }
 
   hostConnected(): void {
     this.dispatchRequest();
@@ -91,10 +75,12 @@ export class ContextConsumer<
   }
 
   private dispatchRequest() {
-    this.host.dispatchEvent(
+    this.host?.$fastController.element.dispatchEvent(
       new ContextRequestEvent(this.context, this._callback, this.subscribe)
     );
   }
+
+  private unsubscribe?: () => void;
 
   // This function must have stable identity to properly dedupe in ContextRoot
   // if this element connects multiple times.
@@ -114,9 +100,8 @@ export class ContextConsumer<
     }
 
     // store the value so that it can be retrieved from the controller
+    // as it is an observable it will trigger an template update if needed.
     this.value = value;
-    // schedule an update in case this value is used in a template
-    this.host.requestUpdate();
 
     // only invoke callback if we are either expecting updates or have not yet
     // been provided a value

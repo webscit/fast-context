@@ -5,13 +5,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+import type { Behavior, FASTElement } from '@microsoft/fast-element';
 import {ContextRequestEvent} from '../context-request-event.js';
 import {ValueNotifier} from '../value-notifier.js';
 import type {Context, ContextType} from '../create-context.js';
-import type {
-  ReactiveController,
-  ReactiveControllerHost,
-} from '@lit/reactive-element';
 
 declare global {
   interface HTMLElementEventMap {
@@ -43,10 +40,8 @@ export interface Options<C extends Context<unknown, unknown>> {
   initialValue?: ContextType<C>;
 }
 
-type ReactiveElementHost = Partial<ReactiveControllerHost> & HTMLElement;
-
 /**
- * A ReactiveController which adds context provider behavior to a
+ * A Behavior which adds context provider behavior to a
  * custom element.
  *
  * This controller simply listens to the `context-request` event when
@@ -59,36 +54,26 @@ type ReactiveElementHost = Partial<ReactiveControllerHost> & HTMLElement;
  * ReactiveControllerHost.
  */
 export class ContextProvider<
-    T extends Context<unknown, unknown>,
-    HostElement extends ReactiveElementHost = ReactiveElementHost
+    T extends Context<unknown, unknown>
   >
   extends ValueNotifier<ContextType<T>>
-  implements ReactiveController
+  implements Behavior
 {
-  protected readonly host: HostElement;
+  protected host: FASTElement | null = null;
   private readonly context: T;
 
-  constructor(host: HostElement, options: Options<T>);
-  /** @deprecated Use new ContextProvider(host, options) */
-  constructor(host: HostElement, context: T, initialValue?: ContextType<T>);
-  constructor(
-    host: HostElement,
-    contextOrOptions: T | Options<T>,
-    initialValue?: ContextType<T>
-  ) {
-    super(
-      (contextOrOptions as Options<T>).context !== undefined
-        ? (contextOrOptions as Options<T>).initialValue
-        : initialValue
-    );
-    this.host = host;
-    if ((contextOrOptions as Options<T>).context !== undefined) {
-      this.context = (contextOrOptions as Options<T>).context;
-    } else {
-      this.context = contextOrOptions as T;
-    }
+  constructor(options: Options<T>) {
+    super(options.initialValue);
+    this.context = options.context;
+  }
+
+  bind(source: FASTElement): void {
+    this.host = source;
     this.attachListeners();
-    this.host.addController?.(this);
+    this.hostConnected();
+  }
+
+  unbind(): void {
   }
 
   onContextRequest = (
@@ -101,7 +86,7 @@ export class ContextProvider<
     // where the consumer is in the shadowDom of the provider (in which case,
     // event.target === this.host because of event retargeting).
     const consumerHost = ev.composedPath()[0] as Element;
-    if (ev.context !== this.context || consumerHost === this.host) {
+    if (ev.context !== this.context || consumerHost === (this.host as any)) {
       return;
     }
     ev.stopPropagation();
@@ -124,7 +109,7 @@ export class ContextProvider<
     // where the consumer is in the shadowDom of the provider (in which case,
     // event.target === this.host because of event retargeting).
     const childProviderHost = ev.composedPath()[0] as Element;
-    if (ev.context !== this.context || childProviderHost === this.host) {
+    if (ev.context !== this.context || childProviderHost === (this.host as any)) {
       return;
     }
     // Re-parent all of our subscriptions in case this new child provider
@@ -156,12 +141,12 @@ export class ContextProvider<
   };
 
   private attachListeners() {
-    this.host.addEventListener('context-request', this.onContextRequest);
-    this.host.addEventListener('context-provider', this.onProviderRequest);
+    this.host?.$fastController.element.addEventListener('context-request', this.onContextRequest);
+    this.host?.$fastController.element.addEventListener('context-provider', this.onProviderRequest);
   }
 
   hostConnected(): void {
     // emit an event to signal a provider is available for this context
-    this.host.dispatchEvent(new ContextProviderEvent(this.context));
+    this.host?.$fastController.element.dispatchEvent(new ContextProviderEvent(this.context));
   }
 }

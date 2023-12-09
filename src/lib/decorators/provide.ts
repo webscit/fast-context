@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {ReactiveElement} from '@lit/reactive-element';
+import type {FASTElement} from '@microsoft/fast-element';
 import {Context} from '../create-context.js';
 import {ContextProvider} from '../controllers/context-provider.js';
 
@@ -40,38 +40,42 @@ export function provide<ValueType>({
 }: {
   context: Context<unknown, ValueType>;
 }): ProvideDecorator<ValueType> {
-  return (<C extends ReactiveElement, V extends ValueType>(
+  return (<C extends FASTElement, V extends ValueType>(
     protoOrTarget: ClassAccessorDecoratorTarget<C, V>,
     nameOrContext: PropertyKey | ClassAccessorDecoratorContext<C, V>
   ) => {
     // Map of instances to controllers
     const controllerMap = new WeakMap<
-      ReactiveElement,
+      FASTElement,
       ContextProvider<Context<unknown, ValueType>>
     >();
     if (typeof nameOrContext === 'object') {
       // Standard decorators branch
-      nameOrContext.addInitializer(function (this: ReactiveElement) {
-        controllerMap.set(this, new ContextProvider(this, {context}));
+      nameOrContext.addInitializer(function (this: FASTElement) {
+        const provider = new ContextProvider({context})
+        controllerMap.set(this, provider);
+        this.$fastController.addBehaviors([provider])
       });
       return {
-        get(this: ReactiveElement) {
+        get(this: FASTElement) {
           return protoOrTarget.get.call(this as unknown as C);
         },
-        set(this: ReactiveElement, value: V) {
+        set(this: FASTElement, value: V) {
           controllerMap.get(this)?.setValue(value);
           return protoOrTarget.set.call(this as unknown as C, value);
         },
-        init(this: ReactiveElement, value: V) {
+        init(this: FASTElement, value: V) {
           controllerMap.get(this)?.setValue(value);
           return value;
         },
       };
     } else {
       // Experimental decorators branch
-      (protoOrTarget.constructor as typeof ReactiveElement).addInitializer(
-        (element: ReactiveElement): void => {
-          controllerMap.set(element, new ContextProvider(element, {context}));
+      (protoOrTarget.constructor as any).addInitializer(
+        (element: FASTElement): void => {
+          const provider = new ContextProvider({context})
+          controllerMap.set(element, provider);
+          element.$fastController.addBehaviors([provider]);
         }
       );
       // proxy any existing setter for this property and use it to
@@ -82,12 +86,12 @@ export function provide<ValueType>({
       );
       let newDescriptor: PropertyDescriptor;
       if (descriptor === undefined) {
-        const valueMap = new WeakMap<ReactiveElement, ValueType>();
+        const valueMap = new WeakMap<FASTElement, ValueType>();
         newDescriptor = {
-          get: function (this: ReactiveElement) {
+          get: function (this: FASTElement) {
             return valueMap.get(this);
           },
-          set: function (this: ReactiveElement, value: ValueType) {
+          set: function (this: FASTElement, value: ValueType) {
             controllerMap.get(this)!.setValue(value);
             valueMap.set(this, value);
           },
@@ -98,7 +102,7 @@ export function provide<ValueType>({
         const oldSetter = descriptor.set;
         newDescriptor = {
           ...descriptor,
-          set: function (this: ReactiveElement, value: ValueType) {
+          set: function (this: FASTElement, value: ValueType) {
             controllerMap.get(this)!.setValue(value);
             oldSetter?.call(this, value);
           },
@@ -123,7 +127,7 @@ type ProvideDecorator<ContextType> = {
   // legacy
   <
     K extends PropertyKey,
-    Proto extends Interface<Omit<ReactiveElement, 'renderRoot'>>
+    Proto extends Interface<FASTElement>
   >(
     protoOrDescriptor: Proto,
     name?: K
@@ -131,7 +135,7 @@ type ProvideDecorator<ContextType> = {
 
   // standard
   <
-    C extends Interface<Omit<ReactiveElement, 'renderRoot'>>,
+    C extends Interface<FASTElement>,
     V extends ContextType
   >(
     value: ClassAccessorDecoratorTarget<C, V>,
