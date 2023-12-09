@@ -1,6 +1,6 @@
 import {ReactiveElement} from 'lit';
 
-import {createContext, consume, provide} from '@lit/context';
+import {createContext, consume, provide} from 'fast-context';
 
 const numberContext = createContext<number>('number');
 const numberOrUndefinedContext = createContext<number | undefined>(

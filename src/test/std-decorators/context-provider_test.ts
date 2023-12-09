@@ -5,58 +5,61 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {LitElement, html, TemplateResult} from 'lit';
-import {property} from 'lit/decorators.js';
-
-import {createContext, consume, provide} from '@lit/context';
+import {DOM, FASTElement, html, nullableNumberConverter} from '@microsoft/fast-element';
+import {createContext, consume, provide} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 
 const simpleContext = createContext<number>('simple-context');
 const optionalContext = createContext<number | undefined>('optional-context');
 
-class ContextConsumerElement extends LitElement {
+class ContextConsumerElement extends FASTElement {
+  static definition = {
+    name: 'context-consumer', 
+    template: html`Value <span id="value">${x => x.value}</span>`,
+    attributes: [
+      { property: 'value', converter: nullableNumberConverter, mode: 'fromView'},
+      { property: 'value2', converter: nullableNumberConverter, mode: 'fromView'},
+      { property: 'optionalValue', converter: nullableNumberConverter, mode: 'fromView'},
+      { property: 'consumeOptionalWithDefault', converter: nullableNumberConverter, mode: 'fromView'},
+    ]
+  }
   @consume({context: simpleContext, subscribe: true})
-  @property({type: Number})
   // TODO: should this include `| undefined`?
   public accessor value: number = undefined as unknown as number;
 
-  // @ts-expect-error Type 'string' is not assignable to type 'number'.
   @consume({context: simpleContext, subscribe: true})
-  @property({type: Number})
   public accessor value2: string | undefined;
 
   @consume({context: optionalContext, subscribe: true})
-  @property({type: Number})
   public accessor optionalValue: number | undefined;
 
   @consume({context: optionalContext, subscribe: true})
-  @property({type: Number})
   public accessor consumeOptionalWithDefault: number | undefined = 0;
 
-  protected override render(): TemplateResult {
-    return html`Value <span id="value">${this.value}</span>`;
-  }
 }
-customElements.define('context-consumer', ContextConsumerElement);
 
-class ContextProviderElement extends LitElement {
-  @provide({context: simpleContext})
-  @property({type: Number, reflect: true})
-  public accessor value = 0;
+FASTElement.define(ContextConsumerElement)
 
-  @provide({context: optionalContext})
-  @property({type: Number})
-  public accessor optionalValue: number | undefined;
-
-  protected override render(): TemplateResult {
-    return html`
+class ContextProviderElement extends FASTElement {
+  static definition = {
+    name: 'context-provider',
+    template: html`
       <div>
         <slot></slot>
       </div>
-    `;
+    `,
+    attributes: [
+      {property: 'value', converter: nullableNumberConverter, mode: 'fromView'},
+      {property: 'optionalValue', converter: nullableNumberConverter}
+    ]
   }
+
+  @provide({context: simpleContext})
+  public accessor value = 0;
+
+  @provide({context: optionalContext})
+  public accessor optionalValue: number | undefined;
 }
-customElements.define('context-provider', ContextProviderElement);
 
 suite('@consume', () => {
   let consumer: ContextConsumerElement;
@@ -79,8 +82,7 @@ suite('@consume', () => {
       'context-consumer'
     ) as ContextConsumerElement;
 
-    await provider.updateComplete;
-    await consumer.updateComplete;
+    DOM.processUpdates()
 
     assert.isDefined(consumer);
   });
@@ -96,7 +98,7 @@ suite('@consume', () => {
   test(`consumer receives updated context on provider change`, async () => {
     assert.strictEqual(consumer.value, 1000);
     provider.value = 500;
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.strictEqual(consumer.value, 500);
   });
 
@@ -133,9 +135,7 @@ suite('@consume: multiple instances', () => {
       container.querySelectorAll<ContextConsumerElement>('context-consumer')
     );
 
-    await Promise.all(
-      [...providers, ...consumers].map((el) => el.updateComplete)
-    );
+    DOM.processUpdates();
   });
 
   teardown(() => {
@@ -153,7 +153,7 @@ suite('@consume: multiple instances', () => {
       assert.strictEqual(consumer.value, 1000 + i)
     );
     providers.forEach((provider, i) => (provider.value = 500 + i));
-    await Promise.all(consumers.map((el) => el.updateComplete));
+    DOM.processUpdates();
     consumers.forEach((consumer, i) =>
       assert.strictEqual(consumer.value, 500 + i)
     );

@@ -5,21 +5,19 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {html, LitElement} from 'lit';
-import {property} from 'lit/decorators/property.js';
+import {html, FASTElement} from '@microsoft/fast-element';
 
 import {
   ContextConsumer,
   ContextProvider,
   createContext,
   consume,
-} from '@lit/context';
+} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
-import {stripExpressionComments} from '@lit-labs/testing';
 
 const simpleContext = createContext<number>('simple-context');
 
-class SimpleContextProvider extends LitElement {
+class SimpleContextProvider extends FASTElement {
   private provider = new ContextProvider(this, {
     context: simpleContext,
     initialValue: 1000,
@@ -30,7 +28,7 @@ class SimpleContextProvider extends LitElement {
   }
 }
 
-class SimpleContextConsumer extends LitElement {
+class SimpleContextConsumer extends FASTElement {
   // a one-time property fulfilled by context
   @consume({context: simpleContext})
   @property({type: Number})
@@ -83,7 +81,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.onceValue, 1000);
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(
       stripExpressionComments(consumer.shadowRoot!.innerHTML),
       '1000'
@@ -94,7 +92,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.onceValue, 1000);
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(
       stripExpressionComments(consumer.shadowRoot!.innerHTML),
       '1000'
@@ -103,7 +101,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.onceValue, 1000); // once value shouldn't change
     assert.strictEqual(consumer.subscribedValue, 500);
     assert.strictEqual(consumer.controllerContext.value, 500);
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(
       stripExpressionComments(consumer.shadowRoot!.innerHTML),
       '500'

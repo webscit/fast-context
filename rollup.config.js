@@ -5,8 +5,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {createRequire} from 'module';
-
 import {summary} from 'rollup-plugin-summary';
 import {terser} from 'rollup-plugin-terser';
 import copy from 'rollup-plugin-copy';

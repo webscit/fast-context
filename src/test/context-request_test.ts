@@ -14,7 +14,7 @@ import {
   Context,
   createContext,
   consume,
-} from '@lit/context';
+} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 import {stripExpressionComments} from '@lit-labs/testing';
 
@@ -84,7 +84,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.onceValue, 1000);
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(
       stripExpressionComments(consumer.shadowRoot!.innerHTML),
       '1000'
@@ -95,7 +95,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.onceValue, 1000);
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(
       stripExpressionComments(consumer.shadowRoot!.innerHTML),
       '1000'
@@ -104,7 +104,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.onceValue, 1000); // once value shouldn't change
     assert.strictEqual(consumer.subscribedValue, 500);
     assert.strictEqual(consumer.controllerContext.value, 500);
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(
       stripExpressionComments(consumer.shadowRoot!.innerHTML),
       '500'
@@ -140,7 +140,7 @@ suite('htmlelement-context-provider', () => {
     assert.strictEqual(consumer.onceValue, 1000);
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(
       stripExpressionComments(consumer.shadowRoot!.innerHTML),
       '1000'
@@ -151,7 +151,7 @@ suite('htmlelement-context-provider', () => {
     assert.strictEqual(consumer.onceValue, 1000);
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(
       stripExpressionComments(consumer.shadowRoot!.innerHTML),
       '1000'
@@ -160,7 +160,7 @@ suite('htmlelement-context-provider', () => {
     assert.strictEqual(consumer.onceValue, 1000); // once value shouldn't change
     assert.strictEqual(consumer.subscribedValue, 500);
     assert.strictEqual(consumer.controllerContext.value, 500);
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(
       stripExpressionComments(consumer.shadowRoot!.innerHTML),
       '500'

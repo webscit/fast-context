@@ -7,7 +7,7 @@
 import {LitElement, html, TemplateResult} from 'lit';
 import {property} from 'lit/decorators/property.js';
 
-import {Context, consume, provide} from '@lit/context';
+import {Context, consume, provide} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 
 const simpleContext = 'simple-context' as Context<'simple-context', number>;
@@ -59,9 +59,9 @@ suite('@providerAndConsumer', () => {
       '#child'
     ) as ContextConsumerAndProviderElement;
 
-    await root.updateComplete;
-    await parent.updateComplete;
-    await child.updateComplete;
+    DOM.processUpdates();
+    DOM.processUpdates();
+    DOM.processUpdates();
 
     assert.isDefined(child);
   });
@@ -80,21 +80,21 @@ suite('@providerAndConsumer', () => {
   test(`parent receives updated context on root change`, async () => {
     assert.strictEqual(parent.provided, 10);
     root.value = 50;
-    await parent.updateComplete;
+    DOM.processUpdates();
     assert.strictEqual(parent.provided, 50);
   });
 
   test(`child does not receives updated context on root change`, async () => {
     assert.strictEqual(child.provided, 100);
     root.value = 51;
-    await child.updateComplete;
+    DOM.processUpdates();
     assert.strictEqual(child.provided, 100);
   });
 
   test(`child receives updated context on parent change`, async () => {
     assert.strictEqual(child.provided, 100);
     parent.value = 500;
-    await child.updateComplete;
+    DOM.processUpdates();
     assert.strictEqual(child.provided, 500);
   });
 });

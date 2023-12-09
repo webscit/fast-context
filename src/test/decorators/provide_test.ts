@@ -4,45 +4,40 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {Context, consume, provide} from '@lit/context';
+import {Context, consume, provide} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
-import {LitElement, TemplateResult, html} from 'lit';
-import {property} from 'lit/decorators.js';
+import {DOM, FASTElement, attr, customElement, html, nullableNumberConverter} from '@microsoft/fast-element';
 
 const simpleContext = 'simple-context' as Context<'simple-context', number>;
 
-class SimpleConsumer extends LitElement {
+@customElement({
+  name: 'simple-consumer',
+  template: html``
+})
+class SimpleConsumer extends FASTElement {
   @consume({context: simpleContext, subscribe: true})
   value = -1;
-
-  override render(): TemplateResult {
-    return html``;
-  }
 }
-customElements.define('simple-consumer', SimpleConsumer);
 
 test(`@provide on a property, not an accessor`, async () => {
-  class ProviderWithoutAccessorElement extends LitElement {
-    // Note that value doesn't use `accessor`, or `@property()`, or `@state`
+
+  @customElement({
+    name: 'provider-without-accessor',
+    template: html`<simple-consumer></simple-consumer>`
+  })
+  class ProviderWithoutAccessorElement extends FASTElement {
     @provide({context: simpleContext})
     value = 0;
-
-    override render(): TemplateResult {
-      return html`<simple-consumer></simple-consumer>`;
-    }
   }
-  customElements.define(
-    'provider-without-accessor',
-    ProviderWithoutAccessorElement
-  );
 
   const provider = document.createElement(
     'provider-without-accessor'
   ) as ProviderWithoutAccessorElement;
+
   document.body.appendChild(provider);
   // The field's value is written with its initial value.
   assert.equal(provider.value, 0);
-  await provider.updateComplete;
+  DOM.processUpdates()
   const consumer = provider.shadowRoot?.querySelector(
     'simple-consumer'
   ) as SimpleConsumer;
@@ -52,25 +47,21 @@ test(`@provide on a property, not an accessor`, async () => {
 
   // Updating the provider also updates the subscribing consumer.
   provider.value = 1;
-  await provider.updateComplete;
+  DOM.processUpdates()
   assert.equal(provider.value, 1);
   assert.equal(consumer.value, 1);
 });
 
 test('@provide before @property', async () => {
-  class ProvideBeforeProperty extends LitElement {
-    @provide({context: simpleContext})
-    @property({type: Number})
-    value = 0;
-
-    render() {
-      return html`
-        <span>${this.value}</span>
+  @customElement({name: 'provide-before-property', template: html`
+        <span>${x => x.value}</span>
         <simple-consumer></simple-consumer>
-      `;
-    }
+      `})
+  class ProvideBeforeProperty extends FASTElement {
+    @provide({context: simpleContext})
+    @attr({converter: nullableNumberConverter})
+    value = 0;
   }
-  customElements.define('provide-before-property', ProvideBeforeProperty);
 
   const provider = document.createElement(
     'provide-before-property'
@@ -78,7 +69,7 @@ test('@provide before @property', async () => {
   document.body.appendChild(provider);
   // The field's value is written with its initial value.
   assert.equal(provider.value, 0);
-  await provider.updateComplete;
+  DOM.processUpdates()
   const consumer = provider.shadowRoot?.querySelector(
     'simple-consumer'
   ) as SimpleConsumer;
@@ -87,7 +78,7 @@ test('@provide before @property', async () => {
   assert.equal(consumer.value, 0);
 
   provider.value = 1;
-  await provider.updateComplete;
+  DOM.processUpdates()
   // Confirm provider is reactive.
   assert.equal(provider.shadowRoot?.querySelector('span')?.textContent, '1');
   // Updating the provider also updates the subscribing consumer.
@@ -95,19 +86,15 @@ test('@provide before @property', async () => {
 });
 
 test('@provide after @property', async () => {
-  class ProvideAfterProperty extends LitElement {
-    @property({type: Number})
+  @customElement({name: 'provide-after-property', template: html`
+        <span>${x => x.value}</span>
+        <simple-consumer></simple-consumer>
+      `})
+  class ProvideAfterProperty extends FASTElement {
+    @attr({converter: nullableNumberConverter})
     @provide({context: simpleContext})
     value = 0;
-
-    render() {
-      return html`
-        <span>${this.value}</span>
-        <simple-consumer></simple-consumer>
-      `;
-    }
   }
-  customElements.define('provide-after-property', ProvideAfterProperty);
 
   const provider = document.createElement(
     'provide-after-property'
@@ -115,7 +102,7 @@ test('@provide after @property', async () => {
   document.body.appendChild(provider);
   // The field's value is written with its initial value.
   assert.equal(provider.value, 0);
-  await provider.updateComplete;
+  DOM.processUpdates()
   const consumer = provider.shadowRoot?.querySelector(
     'simple-consumer'
   ) as SimpleConsumer;
@@ -124,7 +111,7 @@ test('@provide after @property', async () => {
   assert.equal(consumer.value, 0);
 
   provider.value = 1;
-  await provider.updateComplete;
+  DOM.processUpdates()
   // Confirm provider is reactive.
   assert.equal(provider.shadowRoot?.querySelector('span')?.textContent, '1');
   // Updating the provider also updates the subscribing consumer.

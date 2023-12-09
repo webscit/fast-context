@@ -16,7 +16,7 @@ import {
   ContextProvider,
   ContextConsumer,
   createContext,
-} from '@lit/context';
+} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 
 const simpleContext = 'simple-context' as Context<'simple-context', number>;
@@ -88,7 +88,7 @@ suiteSkipIE('late context provider', () => {
       'context-consumer'
     ) as ContextConsumerElement;
 
-    await consumer.updateComplete;
+    DOM.processUpdates();
 
     // Initially consumer has initial value
     assert.strictEqual(consumer.value, 0);
@@ -97,8 +97,8 @@ suiteSkipIE('late context provider', () => {
     // Define provider element
     customElements.define('late-context-provider', LateContextProviderElement);
 
-    await provider.updateComplete;
-    await consumer.updateComplete;
+    DOM.processUpdates();
+    DOM.processUpdates();
 
     // `value` should now be provided
     assert.strictEqual(consumer.value, 1000);
@@ -108,7 +108,7 @@ suiteSkipIE('late context provider', () => {
 
     // Confirm subscription is established
     provider.value = 500;
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.strictEqual(consumer.value, 500);
 
     // and once was not updated
@@ -136,7 +136,7 @@ suiteSkipIE('late context provider', () => {
       'context-consumer'
     ) as ContextConsumerElement;
 
-    await consumer.updateComplete;
+    DOM.processUpdates();
 
     // Initially consumer has initial value
     assert.strictEqual(consumer.value, 0);
@@ -148,8 +148,8 @@ suiteSkipIE('late context provider', () => {
       class extends LateContextProviderElement {}
     );
 
-    await provider.updateComplete;
-    await consumer.updateComplete;
+    DOM.processUpdates();
+    DOM.processUpdates();
 
     // `value` should now be provided
     assert.strictEqual(consumer.value, 1000);
@@ -159,7 +159,7 @@ suiteSkipIE('late context provider', () => {
 
     // Confirm subscription is established
     provider.value = 500;
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.strictEqual(consumer.value, 500);
 
     // and once was not updated
@@ -187,13 +187,13 @@ suiteSkipIE('late context provider', () => {
       'context-consumer'
     ) as ContextConsumerElement;
 
-    await consumer.updateComplete;
+    DOM.processUpdates();
 
     // Add a provider after the elements are setup
     new ContextProvider(provider, {context: simpleContext, initialValue: 1000});
 
-    await provider.updateComplete;
-    await consumer.updateComplete;
+    DOM.processUpdates();
+    DOM.processUpdates();
 
     // `value` should now be provided
     assert.strictEqual(consumer.value, 1000);
@@ -226,7 +226,7 @@ suiteSkipIE('late context provider', () => {
     ) as ContextConsumer2Element;
 
     // Let consumer update once with no provider
-    await consumer.updateComplete;
+    DOM.processUpdates();
 
     // Define provider element
     customElements.define(
@@ -234,8 +234,8 @@ suiteSkipIE('late context provider', () => {
       class extends LateContextProviderElement {}
     );
 
-    await provider.updateComplete;
-    await consumer.updateComplete;
+    DOM.processUpdates();
+    DOM.processUpdates();
 
     // Check that regardless of de-duping in ContextRoot, both @consume()
     // decorated properties were set.
@@ -281,13 +281,13 @@ suiteSkipIE('late context provider', () => {
     const parent2 = container.querySelector('#parent-2')!;
 
     // Let consumer update once with no provider
-    await consumer.updateComplete;
+    DOM.processUpdates();
 
     // Re-parent the consumer so it dispatches a new context-request event
     parent2.append(consumer);
 
     // Let consumer update again with no provider
-    await consumer.updateComplete;
+    DOM.processUpdates();
 
     // Define provider element
     customElements.define(
@@ -295,8 +295,8 @@ suiteSkipIE('late context provider', () => {
       class extends LateContextProviderElement {}
     );
 
-    await provider.updateComplete;
-    await consumer.updateComplete;
+    DOM.processUpdates();
+    DOM.processUpdates();
 
     assert.equal(consumer.value, 999);
     // Check that the consumer was called only once
@@ -346,13 +346,13 @@ suiteSkipIE('late context provider', () => {
       'context-provider-grandparent'
     ) as ContextProviderGrandparentElement;
 
-    await directChildConsumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(directChildConsumer.value, 'grandparent initial value');
     assert.equal(directChildConsumer.callCount, 1);
     assert.equal(indirectChildConsumer.value, 'grandparent initial value');
     assert.equal(indirectChildConsumer.callCount, 1);
     grandparentProvider.provide.setValue('grandparent updated');
-    await directChildConsumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(directChildConsumer.value, 'grandparent updated');
     assert.equal(directChildConsumer.callCount, 2);
     assert.equal(indirectChildConsumer.value, 'grandparent updated');
@@ -367,7 +367,7 @@ suiteSkipIE('late context provider', () => {
     }
 
     // The indirect child now gets the late provider's initial value
-    await directChildConsumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(directChildConsumer.value, 'grandparent updated');
     assert.equal(indirectChildConsumer.value, 'late provider initial value');
 
@@ -377,13 +377,13 @@ suiteSkipIE('late context provider', () => {
       'late-context-provider-4'
     ) as LateContextProvider4Element;
     middleProvider.provide.setValue('late provider updated');
-    await directChildConsumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(directChildConsumer.value, 'grandparent updated');
     assert.equal(indirectChildConsumer.value, 'late provider updated');
 
     // Updating the grandparent only propagates to the direct child
     grandparentProvider.provide.setValue('grandparent updated again');
-    await directChildConsumer.updateComplete;
+    DOM.processUpdates();
     assert.equal(directChildConsumer.value, 'grandparent updated again');
     assert.equal(indirectChildConsumer.value, 'late provider updated');
   });

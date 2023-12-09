@@ -8,7 +8,7 @@
 import {LitElement, html, TemplateResult} from 'lit';
 import {property} from 'lit/decorators.js';
 
-import {createContext, consume, provide} from '@lit/context';
+import {createContext, consume, provide} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 import {memorySuite} from './test_util.js';
 
@@ -79,8 +79,8 @@ suite('@consume', () => {
       'context-consumer'
     ) as ContextConsumerElement;
 
-    await provider.updateComplete;
-    await consumer.updateComplete;
+    DOM.processUpdates();
+    DOM.processUpdates();
 
     assert.isDefined(consumer);
   });
@@ -96,7 +96,7 @@ suite('@consume', () => {
   test(`consumer receives updated context on provider change`, async () => {
     assert.strictEqual(consumer.value, 1000);
     provider.value = 500;
-    await consumer.updateComplete;
+    DOM.processUpdates();
     assert.strictEqual(consumer.value, 500);
   });
 
@@ -185,8 +185,8 @@ memorySuite('memory leak test', () => {
       'context-consumer'
     ) as ContextConsumerElement;
 
-    await provider.updateComplete;
-    await consumer.updateComplete;
+    DOM.processUpdates();
+    DOM.processUpdates();
 
     assert.isDefined(consumer);
   });
@@ -206,7 +206,7 @@ memorySuite('memory leak test', () => {
       ) as ContextConsumerElement;
       (consumer as any).heapExpandoProp = big();
       provider.appendChild(consumer);
-      await consumer.updateComplete;
+      DOM.processUpdates();
       // Periodically force a GC to prevent the heap size from expanding
       // too much.
       // If we're leaking memory this is a noop. But if we aren't, this makes
