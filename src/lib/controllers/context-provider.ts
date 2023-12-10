@@ -5,7 +5,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import type { Behavior, FASTElement } from '@microsoft/fast-element';
 import {ContextRequestEvent} from '../context-request-event.js';
 import {ValueNotifier} from '../value-notifier.js';
 import type {Context, ContextType} from '../create-context.js';
@@ -54,26 +53,32 @@ export interface Options<C extends Context<unknown, unknown>> {
  * ReactiveControllerHost.
  */
 export class ContextProvider<
-    T extends Context<unknown, unknown>
+    T extends Context<unknown, unknown>,
+    HostElement extends HTMLElement = HTMLElement
   >
   extends ValueNotifier<ContextType<T>>
-  implements Behavior
 {
-  protected host: FASTElement | null = null;
+  protected readonly host: HostElement;
   private readonly context: T;
+  private readonly attachObserver: ResizeObserver;
+  private isReady = false;
 
-  constructor(options: Options<T>) {
+  constructor(el: HostElement, options: Options<T>) {
     super(options.initialValue);
+    this.host = el;
     this.context = options.context;
-  }
 
-  bind(source: FASTElement): void {
-    this.host = source;
-    this.attachListeners();
-    this.hostConnected();
-  }
-
-  unbind(): void {
+    this.attachObserver = new ResizeObserver(() => {
+      if(this.host.isConnected) {
+        if(!this.isReady){
+        this.isReady = true;
+        this.hostConnected();}
+      } else {
+        this.isReady = false;
+        this.hostDisconnected();
+      }
+    })
+    this.attachObserver.observe(this.host);
   }
 
   onContextRequest = (
@@ -140,13 +145,16 @@ export class ContextProvider<
     ev.stopPropagation();
   };
 
-  private attachListeners() {
-    this.host?.$fastController.element.addEventListener('context-request', this.onContextRequest);
-    this.host?.$fastController.element.addEventListener('context-provider', this.onProviderRequest);
+  hostConnected(): void {
+    this.host.addEventListener('context-request', this.onContextRequest);
+    this.host.addEventListener('context-provider', this.onProviderRequest);
+
+    // emit an event to signal a provider is available for this context
+    this.host.dispatchEvent(new ContextProviderEvent(this.context));
   }
 
-  hostConnected(): void {
-    // emit an event to signal a provider is available for this context
-    this.host?.$fastController.element.dispatchEvent(new ContextProviderEvent(this.context));
+  hostDisconnected(): void {
+    this.host.removeEventListener('context-request', this.onContextRequest);
+    this.host.removeEventListener('context-provider', this.onProviderRequest);
   }
 }

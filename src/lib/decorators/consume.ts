@@ -47,14 +47,14 @@ export function consume<ValueType>({
   context: Context<unknown, ValueType>;
   subscribe?: boolean;
 }): ConsumeDecorator<ValueType> {
-  return (<C extends FASTElement, V extends ValueType>(
+  return (<C extends HTMLElement & FASTElement, V extends ValueType>(
     protoOrTarget: ClassAccessorDecoratorTarget<C, V>,
     nameOrContext: PropertyKey | ClassAccessorDecoratorContext<C, V>
   ) => {
     if (typeof nameOrContext === 'object') {
       // Standard decorators branch
-      nameOrContext.addInitializer(function (this: FASTElement): void {
-        const consumer = new ContextConsumer({
+      nameOrContext.addInitializer(function (this: C): void {
+        new ContextConsumer(this, {
           context,
           callback: (value: ValueType) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,13 +62,12 @@ export function consume<ValueType>({
           },
           subscribe,
         });
-        this.$fastController.addBehaviors([consumer]);
       });
     } else {
       // Experimental decorators branch
       (protoOrTarget.constructor as any).addInitializer(
-        (element: FASTElement): void => {
-          const consumer = new ContextConsumer({
+        (element: C): void => {
+          new ContextConsumer(element, {
             context,
             callback: (value: ValueType) => {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,7 +75,6 @@ export function consume<ValueType>({
             },
             subscribe,
           });
-          element.$fastController.addBehaviors([consumer]);
         }
       );
     }

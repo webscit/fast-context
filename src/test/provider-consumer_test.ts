@@ -5,15 +5,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {LitElement, html, TemplateResult} from 'lit';
-import {property} from 'lit/decorators/property.js';
+import {attr, customElement, FASTElement, html, nullableNumberConverter} from '@microsoft/fast-element';
 
 import {ContextProvider, Context, ContextConsumer} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 
 const simpleContext = 'simple-context' as Context<'simple-context', number>;
 
-class SimpleContextProvider extends LitElement {
+@customElement('simple-context-provider')
+class SimpleContextProvider extends FASTElement {
   private provider = new ContextProvider(this, {
     context: simpleContext,
     initialValue: 1000,
@@ -24,8 +24,12 @@ class SimpleContextProvider extends LitElement {
   }
 }
 
-class MultipleContextConsumer extends LitElement {
-  @property({type: Number})
+@customElement({
+  name: 'multiple-context-consumer',
+  template: html`Value <span id="value">${x => x.value}</span>`
+})
+class MultipleContextConsumer extends FASTElement {
+  @attr({converter: nullableNumberConverter})
   public value = 0;
 
   public constructor() {
@@ -38,14 +42,14 @@ class MultipleContextConsumer extends LitElement {
       subscribe: true,
     });
   }
-
-  protected render(): TemplateResult {
-    return html`Value <span id="value">${this.value}</span>`;
-  }
 }
 
-class OnceContextConsumer extends LitElement {
-  @property({type: Number})
+@customElement({
+  name: 'once-context-consumer',
+  template:  html`Value <span id="value">${x => x.value}</span>`
+})
+class OnceContextConsumer extends FASTElement {
+  @attr({converter: nullableNumberConverter})
   public value = 0;
 
   public constructor() {
@@ -57,15 +61,7 @@ class OnceContextConsumer extends LitElement {
       },
     });
   }
-
-  protected render(): TemplateResult {
-    return html`Value <span id="value">${this.value}</span>`;
-  }
 }
-
-customElements.define('multiple-context-consumer', MultipleContextConsumer);
-customElements.define('once-context-consumer', OnceContextConsumer);
-customElements.define('simple-context-provider', SimpleContextProvider);
 
 suite('context-provider', () => {
   let provider: SimpleContextProvider;

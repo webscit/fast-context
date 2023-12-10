@@ -5,8 +5,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {html, LitElement} from 'lit';
-import {property} from 'lit/decorators/property.js';
+import {html, FASTElement, customElement, attr, nullableNumberConverter, DOM} from '@microsoft/fast-element';
 
 import {
   ContextConsumer,
@@ -16,11 +15,11 @@ import {
   consume,
 } from 'fast-context';
 import {assert} from '@esm-bundle/chai';
-import {stripExpressionComments} from '@lit-labs/testing';
 
 const simpleContext = createContext<number>('simple-context');
 
-class SimpleContextProvider extends LitElement {
+@customElement('simple-context-provider')
+class SimpleContextProvider extends FASTElement {
   private provider = new ContextProvider(this, {
     context: simpleContext,
     initialValue: 1000,
@@ -31,15 +30,19 @@ class SimpleContextProvider extends LitElement {
   }
 }
 
-class SimpleContextConsumer extends LitElement {
+@customElement({
+  name: 'simple-context-consumer',
+  template: html`${x => x.controllerContext.value}`
+})
+class SimpleContextConsumer extends FASTElement {
   // a one-time property fulfilled by context
   @consume({context: simpleContext})
-  @property({type: Number})
+  @attr({converter: nullableNumberConverter})
   public onceValue = 0;
 
   // a subscribed property fulfilled by context
   @consume({context: simpleContext, subscribe: true})
-  @property({type: Number})
+  @attr({converter: nullableNumberConverter})
   public subscribedValue = 0;
 
   // just use the controller directly
@@ -50,12 +53,9 @@ class SimpleContextConsumer extends LitElement {
   });
 
   public render() {
-    return html`${this.controllerContext.value}`;
+    return ;
   }
 }
-
-customElements.define('simple-context-consumer', SimpleContextConsumer);
-customElements.define('simple-context-provider', SimpleContextProvider);
 
 suite('context-provider', () => {
   let provider: SimpleContextProvider;
@@ -86,7 +86,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
     assert.equal(
-      stripExpressionComments(consumer.shadowRoot!.innerHTML),
+      (consumer.shadowRoot!.innerHTML),
       '1000'
     );
   });
@@ -97,7 +97,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
     assert.equal(
-      stripExpressionComments(consumer.shadowRoot!.innerHTML),
+      (consumer.shadowRoot!.innerHTML),
       '1000'
     );
     provider.setValue(500);
@@ -106,7 +106,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.controllerContext.value, 500);
     DOM.processUpdates();
     assert.equal(
-      stripExpressionComments(consumer.shadowRoot!.innerHTML),
+      (consumer.shadowRoot!.innerHTML),
       '500'
     );
   });
@@ -142,7 +142,7 @@ suite('htmlelement-context-provider', () => {
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
     assert.equal(
-      stripExpressionComments(consumer.shadowRoot!.innerHTML),
+      (consumer.shadowRoot!.innerHTML),
       '1000'
     );
   });
@@ -153,7 +153,7 @@ suite('htmlelement-context-provider', () => {
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
     assert.equal(
-      stripExpressionComments(consumer.shadowRoot!.innerHTML),
+      (consumer.shadowRoot!.innerHTML),
       '1000'
     );
     provider.setValue(500);
@@ -162,7 +162,7 @@ suite('htmlelement-context-provider', () => {
     assert.strictEqual(consumer.controllerContext.value, 500);
     DOM.processUpdates();
     assert.equal(
-      stripExpressionComments(consumer.shadowRoot!.innerHTML),
+      (consumer.shadowRoot!.innerHTML),
       '500'
     );
   });

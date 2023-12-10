@@ -1,5 +1,4 @@
-import {ReactiveElement} from 'lit';
-
+import { FASTElement } from '@microsoft/fast-element';
 import {createContext, consume, provide} from 'fast-context';
 
 const numberContext = createContext<number>('number');
@@ -21,7 +20,7 @@ suite('compilation tests', () => {
   }
 
   test('correct uses of @provide should type check', () => {
-    class TestElement extends ReactiveElement {
+    class TestElement extends FASTElement {
       @provide({context: numberContext}) simpleProvide = 0;
       @provide({context: numberOrUndefinedContext})
       provideUndefinedWithDefined = 0;
@@ -49,7 +48,7 @@ suite('compilation tests', () => {
   });
 
   test('correct uses of @consume should type check', () => {
-    class TestElement extends ReactiveElement {
+    class TestElement extends FASTElement {
       @consume({context: numberContext}) simpleConsume = 0;
       @consume({context: numberOrUndefinedContext})
       consumeUndefinedWithUndefined: number | undefined;
@@ -74,7 +73,7 @@ suite('compilation tests', () => {
   });
 
   test('incorrect uses of @provide should produce type errors', () => {
-    class TestElement extends ReactiveElement {
+    class TestElement extends FASTElement {
       // @ts-expect-error string providing number
       @provide({context: numberContext}) provideStringWithNumber = '0';
       // @ts-expect-error number or undefined providing number
@@ -96,7 +95,7 @@ suite('compilation tests', () => {
   });
 
   test('incorrect uses of @consume should produce type errors', () => {
-    class TestElement extends ReactiveElement {
+    class TestElement extends FASTElement {
       // @ts-expect-error string consuming number
       @consume({context: numberContext}) consumeNumberWithString = '0';
       // @ts-expect-error string consuming number
@@ -113,7 +112,7 @@ suite('compilation tests', () => {
   });
 
   test(`things we wish wouldn't type check, but do currently`, () => {
-    class TestElement extends ReactiveElement {
+    class TestElement extends FASTElement {
       @provide({context: numberContext})
       private provideNumberWithPrivateString = '';
       @provide({context: numberContext})

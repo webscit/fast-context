@@ -27,6 +27,7 @@ class ContextConsumerElement extends FASTElement {
   // TODO: should this include `| undefined`?
   public accessor value: number = undefined as unknown as number;
 
+  // @ts-expect-error Type 'string | undefined' is not assignable to type 'number'.
   @consume({context: simpleContext, subscribe: true})
   public accessor value2: string | undefined;
 

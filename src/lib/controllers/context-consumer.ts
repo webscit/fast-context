@@ -46,16 +46,18 @@ export class ContextConsumer<
 
   @observable value?: ContextType<C> = undefined;
 
-  constructor(options: Options<C>) {
+  constructor(el: HostElement, options: Options<C>) {
+    this.host = el;
     // This is a potentially fragile duck-type. It means a context object can't
     // have a property name context and be used in positional argument form.
     this.context = options.context;
     this.callback = options.callback;
     this.subscribe = options.subscribe ?? false;
+
+    this.host.$fastController.addBehaviors([this]);
   }
 
-  bind(source: HostElement): void {
-    this.host = source;
+  bind(): void {
     this.hostConnected();
   }
 

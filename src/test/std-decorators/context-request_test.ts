@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {html, FASTElement} from '@microsoft/fast-element';
+import {html, FASTElement, nullableNumberConverter, DOM} from '@microsoft/fast-element';
 
 import {
   ContextConsumer,
@@ -18,6 +18,10 @@ import {assert} from '@esm-bundle/chai';
 const simpleContext = createContext<number>('simple-context');
 
 class SimpleContextProvider extends FASTElement {
+  static definition = {
+    name: 'simple-context-provider'
+  };
+
   private provider = new ContextProvider(this, {
     context: simpleContext,
     initialValue: 1000,
@@ -29,14 +33,20 @@ class SimpleContextProvider extends FASTElement {
 }
 
 class SimpleContextConsumer extends FASTElement {
+  static definition = {
+    name: 'simple-context-consumer',
+    template: html`${x => x.controllerContext.value}`,
+    attributes: [
+      {property: 'onceValue', converter: nullableNumberConverter, mode: 'fromView'},
+      {property: 'subscribedValue', converter: nullableNumberConverter, mode: 'fromView'},
+    ]
+  }
   // a one-time property fulfilled by context
   @consume({context: simpleContext})
-  @property({type: Number})
   public accessor onceValue = 0;
 
   // a subscribed property fulfilled by context
   @consume({context: simpleContext, subscribe: true})
-  @property({type: Number})
   public accessor subscribedValue = 0;
 
   // just use the controller directly
@@ -45,14 +55,10 @@ class SimpleContextConsumer extends FASTElement {
     callback: undefined,
     subscribe: true,
   });
-
-  public override render() {
-    return html`${this.controllerContext.value}`;
-  }
 }
 
-customElements.define('simple-context-consumer', SimpleContextConsumer);
-customElements.define('simple-context-provider', SimpleContextProvider);
+FASTElement.define(SimpleContextConsumer)
+FASTElement.define(SimpleContextProvider)
 
 suite('context-provider', () => {
   let provider: SimpleContextProvider;
@@ -83,7 +89,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
     assert.equal(
-      stripExpressionComments(consumer.shadowRoot!.innerHTML),
+      consumer.shadowRoot!.innerHTML,
       '1000'
     );
   });
@@ -94,7 +100,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
     assert.equal(
-      stripExpressionComments(consumer.shadowRoot!.innerHTML),
+      (consumer.shadowRoot!.innerHTML),
       '1000'
     );
     provider.setValue(500);
@@ -103,7 +109,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.controllerContext.value, 500);
     DOM.processUpdates();
     assert.equal(
-      stripExpressionComments(consumer.shadowRoot!.innerHTML),
+      (consumer.shadowRoot!.innerHTML),
       '500'
     );
   });

@@ -40,31 +40,29 @@ export function provide<ValueType>({
 }: {
   context: Context<unknown, ValueType>;
 }): ProvideDecorator<ValueType> {
-  return (<C extends FASTElement, V extends ValueType>(
+  return (<C extends HTMLElement, V extends ValueType>(
     protoOrTarget: ClassAccessorDecoratorTarget<C, V>,
     nameOrContext: PropertyKey | ClassAccessorDecoratorContext<C, V>
   ) => {
     // Map of instances to controllers
     const controllerMap = new WeakMap<
-      FASTElement,
+      C,
       ContextProvider<Context<unknown, ValueType>>
     >();
     if (typeof nameOrContext === 'object') {
       // Standard decorators branch
-      nameOrContext.addInitializer(function (this: FASTElement) {
-        const provider = new ContextProvider({context})
-        controllerMap.set(this, provider);
-        this.$fastController.addBehaviors([provider])
+      nameOrContext.addInitializer(function (this: C) {
+        controllerMap.set(this, new ContextProvider(this, {context}));
       });
       return {
-        get(this: FASTElement) {
+        get(this: C) {
           return protoOrTarget.get.call(this as unknown as C);
         },
-        set(this: FASTElement, value: V) {
+        set(this: C, value: V) {
           controllerMap.get(this)?.setValue(value);
           return protoOrTarget.set.call(this as unknown as C, value);
         },
-        init(this: FASTElement, value: V) {
+        init(this: C, value: V) {
           controllerMap.get(this)?.setValue(value);
           return value;
         },
@@ -72,10 +70,8 @@ export function provide<ValueType>({
     } else {
       // Experimental decorators branch
       (protoOrTarget.constructor as any).addInitializer(
-        (element: FASTElement): void => {
-          const provider = new ContextProvider({context})
-          controllerMap.set(element, provider);
-          element.$fastController.addBehaviors([provider]);
+        (element: C): void => {
+          controllerMap.set(element, new ContextProvider(element, {context}));
         }
       );
       // proxy any existing setter for this property and use it to
@@ -86,12 +82,12 @@ export function provide<ValueType>({
       );
       let newDescriptor: PropertyDescriptor;
       if (descriptor === undefined) {
-        const valueMap = new WeakMap<FASTElement, ValueType>();
+        const valueMap = new WeakMap<C, ValueType>();
         newDescriptor = {
-          get: function (this: FASTElement) {
+          get: function (this: C) {
             return valueMap.get(this);
           },
-          set: function (this: FASTElement, value: ValueType) {
+          set: function (this: C, value: ValueType) {
             controllerMap.get(this)!.setValue(value);
             valueMap.set(this, value);
           },
@@ -102,7 +98,7 @@ export function provide<ValueType>({
         const oldSetter = descriptor.set;
         newDescriptor = {
           ...descriptor,
-          set: function (this: FASTElement, value: ValueType) {
+          set: function (this: C, value: ValueType) {
             controllerMap.get(this)!.setValue(value);
             oldSetter?.call(this, value);
           },

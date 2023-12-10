@@ -1,12 +1,11 @@
 {
   "name": "fast-context",
   "version": "0.1.0",
-  "description": "Helpers and controllers for using Context protocol with FAST element",
+  "description": "Helpers and controllers for using Context protocol with FAST elements",
   "license": "BSD-3-Clause",
-  "homepage": "https://lit.dev/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lit/lit.git"
+    "url": ""
   },
   "type": "module",
   "main": "index.js",
@@ -34,7 +33,7 @@
     "build": "npm run build:rollup && npm run build:ts && npm run build:ts:std-decorators-tests && npm run build:ts:types",
     "build:ts": "tsc --build --pretty",
     "build:ts:std-decorators-tests": "npm run build:ts && tsc --pretty --project tsconfig.std-decorators-tests.json",
-    "build:ts:types": "npm run build:ts && treemirror development . \"**/*.d.ts{,.map}\" \"!test\"",
+    "build:ts:types": "npm run build:ts && node treemirror.mjs development . \"**/*.d.ts{,.map}\" \"!test\"",
     "build:rollup": "npm run build:ts && rollup -c",
     "test": "npm run test:dev && npm run test:prod",
     "test:dev": "MODE=dev node ../tests/run-web-tests.js \"development/**/*_test.js\" --config ../tests/web-test-runner.config.js",
@@ -60,6 +59,7 @@
     "eslint": "^8.47.0",
     "eslint-plugin-import": "^2.28.1",
     "eslint-plugin-no-only-tests": "^3.1.0",
+    "fast-glob": "^3.2.5",
     "mocha": "^10.0.0",
     "prettier": "^2.7.1",
     "rollup": "^2.76.0",

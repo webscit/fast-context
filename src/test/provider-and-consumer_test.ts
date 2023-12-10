@@ -4,32 +4,27 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {LitElement, html, TemplateResult} from 'lit';
-import {property} from 'lit/decorators/property.js';
+import {attr, customElement, DOM, FASTElement, html, nullableNumberConverter} from '@microsoft/fast-element';
 
 import {Context, consume, provide} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 
 const simpleContext = 'simple-context' as Context<'simple-context', number>;
 
-class ContextConsumerAndProviderElement extends LitElement {
+@customElement({
+  name: 'context-consumer-and-provider',
+  template: html`Value <span id="value">${x => x.value}</span
+      ><span id="fromAbove">${x => x.provided}</span><slot></slot>`
+})
+class ContextConsumerAndProviderElement extends FASTElement {
   @consume({context: simpleContext, subscribe: true})
-  @property({type: Number})
+  @attr({converter: nullableNumberConverter})
   public provided = 0;
 
   @provide({context: simpleContext})
-  @property({type: Number})
+  @attr({converter: nullableNumberConverter})
   public value = 0;
-
-  protected render(): TemplateResult {
-    return html`Value <span id="value">${this.value}</span
-      ><span id="fromAbove">${this.provided}</span><slot></slot>`;
-  }
 }
-customElements.define(
-  'context-consumer-and-provider',
-  ContextConsumerAndProviderElement
-);
 
 suite('@providerAndConsumer', () => {
   let root: ContextConsumerAndProviderElement;
@@ -59,8 +54,6 @@ suite('@providerAndConsumer', () => {
       '#child'
     ) as ContextConsumerAndProviderElement;
 
-    DOM.processUpdates();
-    DOM.processUpdates();
     DOM.processUpdates();
 
     assert.isDefined(child);

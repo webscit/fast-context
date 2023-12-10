@@ -5,8 +5,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {LitElement, html, TemplateResult} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {attr, customElement, DOM, FASTElement, html, nullableNumberConverter} from '@microsoft/fast-element';
 
 import {
   Context,
@@ -21,33 +20,26 @@ import {assert} from '@esm-bundle/chai';
 
 const simpleContext = 'simple-context' as Context<'simple-context', number>;
 
-@customElement('context-consumer')
-class ContextConsumerElement extends LitElement {
+@customElement({name: 'context-consumer', template: html`Value <span id="value">${x => x.value}</span>`})
+class ContextConsumerElement extends FASTElement {
   @consume({context: simpleContext, subscribe: true})
-  @property({type: Number})
+  @attr({converter: nullableNumberConverter})
   public value = 0;
 
   @consume({context: simpleContext})
-  @property({type: Number})
+  @attr({converter: nullableNumberConverter})
   public onceValue = 0;
-
-  protected render(): TemplateResult {
-    return html`Value <span id="value">${this.value}</span>`;
-  }
 }
 
-class LateContextProviderElement extends LitElement {
-  @provide({context: simpleContext})
-  @property({type: Number, reflect: true})
-  public value = 0;
-
-  protected render(): TemplateResult {
-    return html`
+@customElement({name: '', template: html`
       <div>
         <slot></slot>
       </div>
-    `;
-  }
+    `})
+class LateContextProviderElement extends FASTElement {
+  @provide({context: simpleContext})
+  @attr({converter: nullableNumberConverter})
+  public value = 0;
 }
 
 const ua = window.navigator.userAgent;
@@ -97,7 +89,6 @@ suiteSkipIE('late context provider', () => {
     // Define provider element
     customElements.define('late-context-provider', LateContextProviderElement);
 
-    DOM.processUpdates();
     DOM.processUpdates();
 
     // `value` should now be provided
@@ -149,7 +140,6 @@ suiteSkipIE('late context provider', () => {
     );
 
     DOM.processUpdates();
-    DOM.processUpdates();
 
     // `value` should now be provided
     assert.strictEqual(consumer.value, 1000);
@@ -167,12 +157,8 @@ suiteSkipIE('late context provider', () => {
   });
 
   test('lazy added provider', async () => {
-    @customElement('lazy-context-provider')
-    class LazyContextProviderElement extends LitElement {
-      protected render() {
-        return html`<slot></slot>`;
-      }
-    }
+    @customElement({name: 'lazy-context-provider', template: html`<slot></slot>`})
+    class LazyContextProviderElement extends FASTElement {}
     container.innerHTML = `
       <lazy-context-provider>
         <context-consumer></context-consumer>
@@ -193,7 +179,6 @@ suiteSkipIE('late context provider', () => {
     new ContextProvider(provider, {context: simpleContext, initialValue: 1000});
 
     DOM.processUpdates();
-    DOM.processUpdates();
 
     // `value` should now be provided
     assert.strictEqual(consumer.value, 1000);
@@ -201,13 +186,13 @@ suiteSkipIE('late context provider', () => {
 
   test('late element with multiple properties', async () => {
     @customElement('context-consumer-2')
-    class ContextConsumer2Element extends LitElement {
+    class ContextConsumer2Element extends FASTElement {
       @consume({context: simpleContext, subscribe: true})
-      @property({type: Number})
+      @attr({converter: nullableNumberConverter})
       public value1 = 0;
 
       @consume({context: simpleContext, subscribe: true})
-      @property({type: Number})
+      @attr({converter: nullableNumberConverter})
       public value2 = 0;
     }
 
@@ -216,10 +201,6 @@ suiteSkipIE('late context provider', () => {
         <context-consumer-2></context-consumer-2>
       </late-context-provider-2>
     `;
-
-    const provider = container.querySelector(
-      'late-context-provider-2'
-    ) as LateContextProviderElement;
 
     const consumer = container.querySelector(
       'context-consumer-2'
@@ -235,7 +216,6 @@ suiteSkipIE('late context provider', () => {
     );
 
     DOM.processUpdates();
-    DOM.processUpdates();
 
     // Check that regardless of de-duping in ContextRoot, both @consume()
     // decorated properties were set.
@@ -245,15 +225,15 @@ suiteSkipIE('late context provider', () => {
 
   test('a moved component is only provided to once', async () => {
     @customElement('context-consumer-3')
-    class ContextConsumer3Element extends LitElement {
+    class ContextConsumer3Element extends FASTElement {
       _consume = new ContextConsumer(
         this,
-        simpleContext,
-        (value) => {
+        {context: simpleContext,
+        callback: (value) => {
           this.value = value;
           this.callCount++;
         },
-        true
+        subscribe: true}
       );
 
       value: number | undefined = undefined;
@@ -269,10 +249,6 @@ suiteSkipIE('late context provider', () => {
         <div id="parent-2"></div>
       </late-context-provider-3>
     `;
-
-    const provider = container.querySelector(
-      'late-context-provider-3'
-    ) as LateContextProviderElement;
 
     const consumer = container.querySelector(
       'context-consumer-3'
@@ -296,7 +272,6 @@ suiteSkipIE('late context provider', () => {
     );
 
     DOM.processUpdates();
-    DOM.processUpdates();
 
     assert.equal(consumer.value, 999);
     // Check that the consumer was called only once
@@ -306,7 +281,7 @@ suiteSkipIE('late context provider', () => {
   test('a provider that upgrades after an ancestor provider', async () => {
     const context = createContext<string>(Symbol());
     @customElement('context-consumer-4')
-    class ContextConsumer4Element extends LitElement {
+    class ContextConsumer4Element extends FASTElement {
       consume = new ContextConsumer(this, {
         context,
         subscribe: true,
@@ -321,7 +296,7 @@ suiteSkipIE('late context provider', () => {
       callCount = 0;
     }
     @customElement('context-provider-grandparent')
-    class ContextProviderGrandparentElement extends LitElement {
+    class ContextProviderGrandparentElement extends FASTElement {
       provide = new ContextProvider(this, {
         context,
         initialValue: 'grandparent initial value',
@@ -359,7 +334,7 @@ suiteSkipIE('late context provider', () => {
     assert.equal(indirectChildConsumer.callCount, 2);
 
     @customElement('late-context-provider-4')
-    class LateContextProvider4Element extends LitElement {
+    class LateContextProvider4Element extends FASTElement {
       provide = new ContextProvider(this, {
         context,
         initialValue: 'late provider initial value',
