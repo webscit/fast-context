@@ -31,9 +31,9 @@ class ContextConsumerAndProviderElement extends FASTElement {
   public value = 0;
 
   constructor() {
-    super()
-    defineConsumer(this, 'provided', {context: simpleContext, subscribe: true})
-    defineProvider(this, 'value', {context: simpleContext})
+    super();
+    defineConsumer(this, 'provided', {context: simpleContext, subscribe: true});
+    defineProvider(this, 'value', {context: simpleContext});
   }
 }
 

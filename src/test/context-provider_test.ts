@@ -42,19 +42,19 @@ class ContextConsumerElement extends FASTElement {
     super();
     defineConsumer(this, 'value', {
       context: simpleContext,
-      subscribe: true
+      subscribe: true,
     });
     defineConsumer(this, 'value2', {
       context: simpleContext,
-      subscribe: true
+      subscribe: true,
     });
     defineConsumer(this, 'optionalValue', {
       context: optionalContext,
-      subscribe: true
+      subscribe: true,
     });
     defineConsumer(this, 'consumeOptionalWithDefault', {
       context: optionalContext,
-      subscribe: true
+      subscribe: true,
     });
   }
 }
@@ -76,8 +76,8 @@ class ContextProviderElement extends FASTElement {
 
   constructor() {
     super();
-    defineProvider(this, 'value', {context: simpleContext})
-    defineProvider(this, 'optionalValue', {context: optionalContext})
+    defineProvider(this, 'value', {context: simpleContext});
+    defineProvider(this, 'optionalValue', {context: optionalContext});
   }
 }
 
@@ -108,11 +108,10 @@ suite('@consume', () => {
   });
 
   teardown(() => {
-    // document.body.removeChild(container);
+    document.body.removeChild(container);
   });
 
   test(`consumer receives a context`, async () => {
-    console.log(consumer.value)
     assert.strictEqual(consumer.value, 1000);
   });
 
@@ -124,8 +123,10 @@ suite('@consume', () => {
   });
 
   test('consuming and providing with optional fields', async () => {
-    assert.strictEqual(consumer.optionalValue, undefined);
-    assert.strictEqual(consumer.consumeOptionalWithDefault, undefined);
+    // The nullableNumberConverter will set the initial value to `null`
+    // as the attribute is `undefined`
+    assert.strictEqual(consumer.optionalValue, null);
+    assert.strictEqual(consumer.consumeOptionalWithDefault, null);
     provider.optionalValue = 500;
     assert.strictEqual(consumer.optionalValue, 500);
     assert.strictEqual(consumer.consumeOptionalWithDefault, 500);
@@ -206,7 +207,6 @@ memorySuite('memory leak test', () => {
       'context-consumer'
     ) as ContextConsumerElement;
 
-    DOM.processUpdates();
     DOM.processUpdates();
 
     assert.isDefined(consumer);

@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import type { Behavior } from '@microsoft/fast-element';
+import type {Behavior} from '@microsoft/fast-element';
 import {ContextRequestEvent} from '../context-request-event.js';
 import {ValueNotifier} from '../value-notifier.js';
 import type {Context, ContextType} from '../create-context.js';
@@ -54,9 +54,12 @@ export interface Options<C extends Context<unknown, unknown>> {
  * ReactiveControllerHost.
  */
 export class ContextProvider<
-  T extends Context<unknown, unknown>,
-  HostElement extends HTMLElement = HTMLElement
-> extends ValueNotifier<ContextType<T>> implements Behavior {
+    T extends Context<unknown, unknown>,
+    HostElement extends HTMLElement = HTMLElement
+  >
+  extends ValueNotifier<ContextType<T>>
+  implements Behavior
+{
   protected readonly host: HostElement;
   private readonly context: T;
   private isReady = false;
@@ -70,22 +73,25 @@ export class ContextProvider<
     if (this.host.$fastController) {
       // @ts-expect-error in case of a FASTElement
       this.host.$fastController.addBehaviors([this]);
-    } else {const connectionCallback = () => {
-      if (this.host.isConnected) {
-        if (!this.isReady) {
-          this.isReady = true;
-          this.hostConnected();
+    } else {
+      const connectionCallback = () => {
+        if (this.host.isConnected) {
+          if (!this.isReady) {
+            this.isReady = true;
+            this.hostConnected();
+          }
+        } else {
+          if (this.isReady) {
+            this.isReady = false;
+            this.hostDisconnected();
+          }
         }
-      } else {
-        if (this.isReady){
-        this.isReady = false;
-        this.hostDisconnected();}
-      }
-    }
+      };
 
-    const attachObserver = new ResizeObserver(connectionCallback);
-    connectionCallback();
-    attachObserver.observe(this.host);}
+      const attachObserver = new ResizeObserver(connectionCallback);
+      connectionCallback();
+      attachObserver.observe(this.host);
+    }
   }
 
   bind(): void {
@@ -93,7 +99,7 @@ export class ContextProvider<
   }
 
   unbind(): void {
-    this.hostDisconnected()
+    this.hostDisconnected();
   }
 
   onContextRequest = (
