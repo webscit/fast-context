@@ -330,7 +330,5 @@ const litMonoBundleConfig = ({
 
 export default litProdConfig({
   entryPoints: ['index'],
-  external: [
-    '@microsoft/fast-element'
-  ],
+  external: ['@microsoft/fast-element'],
 });

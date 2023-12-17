@@ -35,9 +35,14 @@
     "build:ts:std-decorators-tests": "npm run build:ts && tsc --pretty --project tsconfig.std-decorators-tests.json",
     "build:ts:types": "npm run build:ts && node treemirror.mjs development . \"**/*.d.ts{,.map}\" \"!test\"",
     "build:rollup": "npm run build:ts && rollup -c",
-    "test": "npm run test:dev && npm run test:prod",
-    "test:dev": "MODE=dev node ../tests/run-web-tests.js \"development/**/*_test.js\" --config ../tests/web-test-runner.config.js",
-    "test:prod": "MODE=prod node ../tests/run-web-tests.js \"development/**/*_test.js\" --config ../tests/web-test-runner.config.js",
+    "format": "prettier \"**/*.{cjs,html,js,json,md,ts}\" --write",
+    "format:check": "prettier \"**/*.{cjs,html,js,json,md,ts}\" --check",
+    "lint": "eslint --fix \"**/*.{js,ts}\"",
+    "lint:check": "eslint \"**/*.{js,ts}\"",
+    "test": "web-test-runner \"development/**/*_test.js\" --config web-test-runner.config.cjs",
+    "test_": "npm run test:dev && npm run test:prod",
+    "test_:dev": "MODE=dev node ../tests/run-web-tests.js \"development/**/*_test.js\" --config ../tests/web-test-runner.config.js",
+    "test_:prod": "MODE=prod node ../tests/run-web-tests.js \"development/**/*_test.js\" --config ../tests/web-test-runner.config.js",
     "checksize": "npm run build:ts && rollup -c --environment=CHECKSIZE"
   },
   "author": "Frederic Collonval",
@@ -56,6 +61,11 @@
     "@types/trusted-types": "^2.0.2",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
+    "@web/dev-server": "^0.1.32",
+    "@web/dev-server-legacy": "^1.0.0",
+    "@web/test-runner": "^0.15.0",
+    "@web/test-runner-mocha": "^0.7.5",
+    "@web/test-runner-playwright": "^0.9.0",
     "eslint": "^8.47.0",
     "eslint-plugin-import": "^2.28.1",
     "eslint-plugin-no-only-tests": "^3.1.0",
@@ -71,5 +81,78 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "eslint-plugin-import",
+      "eslint-plugin-no-only-tests",
+      "@typescript-eslint"
+    ],
+    "env": {
+      "browser": true
+    },
+    "rules": {
+      "import/extensions": [
+        "error",
+        "always"
+      ],
+      "no-prototype-builtins": "off",
+      "no-only-tests/no-only-tests": "error",
+      "@typescript-eslint/ban-types": "off",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_"
+        }
+      ]
+    },
+    "overrides": [
+      {
+        "files": [
+          "rollup.config.js",
+          "web-test-runner.config.js"
+        ],
+        "env": {
+          "node": true
+        }
+      },
+      {
+        "files": [
+          "*_test.ts"
+        ],
+        "rules": {
+          "@typescript-eslint/no-explicit-any": "off"
+        }
+      },
+      {
+        "files": [
+          "**/rollup.config.js",
+          "**/src/test/**",
+          "**/test-output/**",
+          "**/web-test-runner.config.js"
+        ],
+        "rules": {
+          "import/no-extraneous-dependencies": "off"
+        }
+      }
+    ]
+  },
+  "prettier": {
+    "singleQuote": true,
+    "bracketSpacing": false
   }
 }

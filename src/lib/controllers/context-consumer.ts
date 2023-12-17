@@ -5,14 +5,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import type {Behavior, FASTElement} from '@microsoft/fast-element'
-import {observable} from '@microsoft/fast-element'
+import type {Behavior, FASTElement} from '@microsoft/fast-element';
+import {observable} from '@microsoft/fast-element';
 import {
   ContextCallback,
   ContextRequestEvent,
 } from '../context-request-event.js';
 import type {Context, ContextType} from '../create-context.js';
-
 
 export interface Options<C extends Context<unknown, unknown>> {
   context: C;
@@ -62,7 +61,7 @@ export class ContextConsumer<
   }
 
   unbind(): void {
-    this.hostDisconnected()
+    this.hostDisconnected();
   }
 
   hostConnected(): void {

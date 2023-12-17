@@ -53,11 +53,9 @@ export interface Options<C extends Context<unknown, unknown>> {
  * ReactiveControllerHost.
  */
 export class ContextProvider<
-    T extends Context<unknown, unknown>,
-    HostElement extends HTMLElement = HTMLElement
-  >
-  extends ValueNotifier<ContextType<T>>
-{
+  T extends Context<unknown, unknown>,
+  HostElement extends HTMLElement = HTMLElement
+> extends ValueNotifier<ContextType<T>> {
   protected readonly host: HostElement;
   private readonly context: T;
   private readonly attachObserver: ResizeObserver;
@@ -69,15 +67,16 @@ export class ContextProvider<
     this.context = options.context;
 
     this.attachObserver = new ResizeObserver(() => {
-      if(this.host.isConnected) {
-        if(!this.isReady){
-        this.isReady = true;
-        this.hostConnected();}
+      if (this.host.isConnected) {
+        if (!this.isReady) {
+          this.isReady = true;
+          this.hostConnected();
+        }
       } else {
         this.isReady = false;
         this.hostDisconnected();
       }
-    })
+    });
     this.attachObserver.observe(this.host);
   }
 
@@ -91,7 +90,7 @@ export class ContextProvider<
     // where the consumer is in the shadowDom of the provider (in which case,
     // event.target === this.host because of event retargeting).
     const consumerHost = ev.composedPath()[0] as Element;
-    if (ev.context !== this.context || consumerHost === (this.host as any)) {
+    if (ev.context !== this.context || consumerHost === this.host) {
       return;
     }
     ev.stopPropagation();
@@ -114,7 +113,7 @@ export class ContextProvider<
     // where the consumer is in the shadowDom of the provider (in which case,
     // event.target === this.host because of event retargeting).
     const childProviderHost = ev.composedPath()[0] as Element;
-    if (ev.context !== this.context || childProviderHost === (this.host as any)) {
+    if (ev.context !== this.context || childProviderHost === this.host) {
       return;
     }
     // Re-parent all of our subscriptions in case this new child provider
