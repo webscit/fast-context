@@ -5,6 +5,9 @@ import type {FASTElement} from '@microsoft/fast-element';
 
 /**
  * Add a context consumer to a FASTElement attribute
+ * 
+ * ### Note
+ * It must be called in the constructor after `super()`.
  *
  * @param element Element on which to add a consumer
  * @param name Element attribute to set with the consumer
@@ -40,7 +43,14 @@ export function defineConsumer<E extends HTMLElement & FASTElement, ValueType>(
 }
 
 /**
- * Wrap a FASTElement attribute as context provider
+ * Wrap a HMTLElement attribute as context provider
+ *
+ * ### Note
+ * If used for a FASTElement, it must be called in the constructor after `super()`.
+ * 
+ * If it is not a FASTElement, you must set up a {@link ContextRoot} element in
+ * your application as the provider notification will happen after the cusomers
+ * request their context.
  *
  * @param element Element providing the context
  * @param name Element attribute defining the provider
@@ -50,7 +60,7 @@ export function defineProvider<E extends HTMLElement, ValueType>(
   element: E,
   name: PropertyKey,
   {
-    context: context,
+    context,
   }: {
     context: Context<unknown, ValueType>;
   }
@@ -60,8 +70,10 @@ export function defineProvider<E extends HTMLElement, ValueType>(
     E,
     ContextProvider<Context<unknown, ValueType>>
   >();
+  // @ts-expect-error Element has no string index
+  const initialValue = element[name];
 
-  controllerMap.set(element, new ContextProvider(element, {context}));
+  controllerMap.set(element, new ContextProvider(element, {context, initialValue }));
 
   // proxy any existing setter for this property and use it to
   // notify the controller of an updated value
@@ -69,6 +81,9 @@ export function defineProvider<E extends HTMLElement, ValueType>(
   let newDescriptor: PropertyDescriptor;
   if (descriptor === undefined) {
     const valueMap = new WeakMap<E, ValueType>();
+    if(initialValue){
+      valueMap.set(element, initialValue);
+    }
     newDescriptor = {
       get: function (this: E) {
         return valueMap.get(this);

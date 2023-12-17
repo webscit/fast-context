@@ -77,6 +77,7 @@ const browsers = (process.env.BROWSERS || 'preset:local')
 
 // https://modern-web.dev/docs/test-runner/cli-and-configuration/
 const config = {
+  // manual: true,
   nodeResolve: {
     exportConditions: mode === 'dev' ? ['development'] : [],
   },

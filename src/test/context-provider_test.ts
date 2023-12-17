@@ -5,9 +5,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {DOM, FASTElement, attr, customElement, html, nullableNumberConverter} from '@microsoft/fast-element';
+import {
+  DOM,
+  FASTElement,
+  attr,
+  customElement,
+  html,
+  nullableNumberConverter,
+} from '@microsoft/fast-element';
 
-import {createContext, consume, provide} from 'fast-context';
+import {createContext, defineConsumer, defineProvider} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 import {memorySuite} from './test_util.js';
 
@@ -16,43 +23,62 @@ const optionalContext = createContext<number | undefined>('optional-context');
 
 @customElement({
   name: 'context-consumer',
-  template: html`Value <span id="value">${x => x.value}</span>`
+  template: html`Value <span id="value">${(x) => x.value}</span>`,
 })
 class ContextConsumerElement extends FASTElement {
-  @consume({context: simpleContext, subscribe: true})
   @attr({converter: nullableNumberConverter})
   public value?: number;
 
-  // @ts-expect-error Type 'string' is not assignable to type 'number'.
-  @consume({context: simpleContext, subscribe: true})
   @attr({converter: nullableNumberConverter})
   public value2?: string;
 
-  @consume({context: optionalContext, subscribe: true})
   @attr({converter: nullableNumberConverter})
   public optionalValue?: number;
 
-  @consume({context: optionalContext, subscribe: true})
   @attr({converter: nullableNumberConverter})
   public consumeOptionalWithDefault: number | undefined = 0;
+
+  constructor() {
+    super();
+    defineConsumer(this, 'value', {
+      context: simpleContext,
+      subscribe: true
+    });
+    defineConsumer(this, 'value2', {
+      context: simpleContext,
+      subscribe: true
+    });
+    defineConsumer(this, 'optionalValue', {
+      context: optionalContext,
+      subscribe: true
+    });
+    defineConsumer(this, 'consumeOptionalWithDefault', {
+      context: optionalContext,
+      subscribe: true
+    });
+  }
 }
 
 @customElement({
   name: 'context-provider',
   template: html`
-      <div>
-        <slot></slot>
-      </div>
-    `
+    <div>
+      <slot></slot>
+    </div>
+  `,
 })
 class ContextProviderElement extends FASTElement {
-  @provide({context: simpleContext})
   @attr({converter: nullableNumberConverter})
   public value = 0;
 
-  @provide({context: optionalContext})
   @attr({converter: nullableNumberConverter, mode: 'fromView'})
   public optionalValue?: number;
+
+  constructor() {
+    super();
+    defineProvider(this, 'value', {context: simpleContext})
+    defineProvider(this, 'optionalValue', {context: optionalContext})
+  }
 }
 
 suite('@consume', () => {
@@ -82,10 +108,11 @@ suite('@consume', () => {
   });
 
   teardown(() => {
-    document.body.removeChild(container);
+    // document.body.removeChild(container);
   });
 
   test(`consumer receives a context`, async () => {
+    console.log(consumer.value)
     assert.strictEqual(consumer.value, 1000);
   });
 
@@ -129,7 +156,7 @@ suite('@consume: multiple instances', () => {
       container.querySelectorAll<ContextConsumerElement>('context-consumer')
     );
 
-    DOM.processUpdates()
+    DOM.processUpdates();
   });
 
   teardown(() => {
@@ -147,7 +174,7 @@ suite('@consume: multiple instances', () => {
       assert.strictEqual(consumer.value, 1000 + i)
     );
     providers.forEach((provider, i) => (provider.value = 500 + i));
-    DOM.processUpdates()
+    DOM.processUpdates();
     consumers.forEach((consumer, i) =>
       assert.strictEqual(consumer.value, 500 + i)
     );

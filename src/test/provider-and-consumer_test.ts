@@ -4,26 +4,37 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {attr, customElement, DOM, FASTElement, html, nullableNumberConverter} from '@microsoft/fast-element';
+import {
+  attr,
+  customElement,
+  DOM,
+  FASTElement,
+  html,
+  nullableNumberConverter,
+} from '@microsoft/fast-element';
 
-import {Context, consume, provide} from 'fast-context';
+import {Context, defineConsumer, defineProvider} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 
 const simpleContext = 'simple-context' as Context<'simple-context', number>;
 
 @customElement({
   name: 'context-consumer-and-provider',
-  template: html`Value <span id="value">${x => x.value}</span
-      ><span id="fromAbove">${x => x.provided}</span><slot></slot>`
+  template: html`Value <span id="value">${(x) => x.value}</span
+    ><span id="fromAbove">${(x) => x.provided}</span><slot></slot>`,
 })
 class ContextConsumerAndProviderElement extends FASTElement {
-  @consume({context: simpleContext, subscribe: true})
   @attr({converter: nullableNumberConverter})
   public provided = 0;
 
-  @provide({context: simpleContext})
   @attr({converter: nullableNumberConverter})
   public value = 0;
+
+  constructor() {
+    super()
+    defineConsumer(this, 'provided', {context: simpleContext, subscribe: true})
+    defineProvider(this, 'value', {context: simpleContext})
+  }
 }
 
 suite('@providerAndConsumer', () => {

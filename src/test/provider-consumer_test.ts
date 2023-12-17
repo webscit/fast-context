@@ -5,7 +5,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {attr, customElement, FASTElement, html, nullableNumberConverter} from '@microsoft/fast-element';
+import {
+  attr,
+  customElement,
+  FASTElement,
+  html,
+  nullableNumberConverter,
+} from '@microsoft/fast-element';
 
 import {ContextProvider, Context, ContextConsumer} from 'fast-context';
 import {assert} from '@esm-bundle/chai';
@@ -26,7 +32,7 @@ class SimpleContextProvider extends FASTElement {
 
 @customElement({
   name: 'multiple-context-consumer',
-  template: html`Value <span id="value">${x => x.value}</span>`
+  template: html`Value <span id="value">${(x) => x.value}</span>`,
 })
 class MultipleContextConsumer extends FASTElement {
   @attr({converter: nullableNumberConverter})
@@ -46,7 +52,7 @@ class MultipleContextConsumer extends FASTElement {
 
 @customElement({
   name: 'once-context-consumer',
-  template:  html`Value <span id="value">${x => x.value}</span>`
+  template: html`Value <span id="value">${(x) => x.value}</span>`,
 })
 class OnceContextConsumer extends FASTElement {
   @attr({converter: nullableNumberConverter})

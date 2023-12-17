@@ -5,14 +5,21 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import {html, FASTElement, customElement, attr, nullableNumberConverter, DOM} from '@microsoft/fast-element';
+import {
+  html,
+  FASTElement,
+  customElement,
+  attr,
+  nullableNumberConverter,
+  DOM,
+} from '@microsoft/fast-element';
 
 import {
   ContextConsumer,
   ContextProvider,
   Context,
   createContext,
-  consume,
+  defineConsumer,
 } from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 
@@ -32,16 +39,12 @@ class SimpleContextProvider extends FASTElement {
 
 @customElement({
   name: 'simple-context-consumer',
-  template: html`${x => x.controllerContext.value}`
+  template: html`${(x) => x.controllerContext.value}`,
 })
 class SimpleContextConsumer extends FASTElement {
-  // a one-time property fulfilled by context
-  @consume({context: simpleContext})
   @attr({converter: nullableNumberConverter})
   public onceValue = 0;
 
-  // a subscribed property fulfilled by context
-  @consume({context: simpleContext, subscribe: true})
   @attr({converter: nullableNumberConverter})
   public subscribedValue = 0;
 
@@ -52,8 +55,16 @@ class SimpleContextConsumer extends FASTElement {
     subscribe: true,
   });
 
+  constructor() {
+    super();
+    // a one-time property fulfilled by context
+    defineConsumer(this, 'onceValue', {context: simpleContext})
+    // a subscribed property fulfilled by context
+    defineConsumer(this, 'subscribedValue', {context: simpleContext, subscribe: true})
+  }
+
   public render() {
-    return ;
+    return;
   }
 }
 
@@ -85,10 +96,7 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
-    assert.equal(
-      (consumer.shadowRoot!.innerHTML),
-      '1000'
-    );
+    assert.equal(consumer.shadowRoot!.innerHTML.replaceAll(/<!--.*?-->/g, ''), '1000');
   });
 
   test(`consumer receives updated context on provider change`, async () => {
@@ -96,19 +104,13 @@ suite('context-provider', () => {
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
-    assert.equal(
-      (consumer.shadowRoot!.innerHTML),
-      '1000'
-    );
+    assert.equal(consumer.shadowRoot!.innerHTML.replaceAll(/<!--.*?-->/g, ''), '1000');
     provider.setValue(500);
     assert.strictEqual(consumer.onceValue, 1000); // once value shouldn't change
     assert.strictEqual(consumer.subscribedValue, 500);
     assert.strictEqual(consumer.controllerContext.value, 500);
     DOM.processUpdates();
-    assert.equal(
-      (consumer.shadowRoot!.innerHTML),
-      '500'
-    );
+    assert.equal(consumer.shadowRoot!.innerHTML.replaceAll(/<!--.*?-->/g, ''), '500');
   });
 });
 
@@ -141,10 +143,7 @@ suite('htmlelement-context-provider', () => {
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
-    assert.equal(
-      (consumer.shadowRoot!.innerHTML),
-      '1000'
-    );
+    assert.equal(consumer.shadowRoot!.innerHTML, '1000');
   });
 
   test(`consumer receives updated context on provider change`, async () => {
@@ -152,18 +151,12 @@ suite('htmlelement-context-provider', () => {
     assert.strictEqual(consumer.subscribedValue, 1000);
     assert.strictEqual(consumer.controllerContext.value, 1000);
     DOM.processUpdates();
-    assert.equal(
-      (consumer.shadowRoot!.innerHTML),
-      '1000'
-    );
+    assert.equal(consumer.shadowRoot!.innerHTML, '1000');
     provider.setValue(500);
     assert.strictEqual(consumer.onceValue, 1000); // once value shouldn't change
     assert.strictEqual(consumer.subscribedValue, 500);
     assert.strictEqual(consumer.controllerContext.value, 500);
     DOM.processUpdates();
-    assert.equal(
-      (consumer.shadowRoot!.innerHTML),
-      '500'
-    );
+    assert.equal(consumer.shadowRoot!.innerHTML, '500');
   });
 });
