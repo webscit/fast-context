@@ -52,6 +52,13 @@ export interface Options<C extends Context<unknown, unknown>> {
  * up to the user to call hostConnected() when attached to the DOM. This is
  * done automatically for any custom elements implementing
  * ReactiveControllerHost.
+ *
+ * ### Note
+ * If the element is a standard HTMLElement, we use a ResizeObserver to
+ * be notified of the element connection to the DOM. However that notification
+ * arrives after the children elements handle their behavior (including the
+ * context consumer behavior). Therefore their registration will be missed
+ * except if a {@link ContextRoot} is set up.
  */
 export class ContextProvider<
     T extends Context<unknown, unknown>,

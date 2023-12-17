@@ -21,7 +21,7 @@ import {
   ContextConsumer,
   createContext,
   defineConsumer,
-  defineProvider
+  defineProvider,
 } from 'fast-context';
 import {assert} from '@esm-bundle/chai';
 
@@ -41,7 +41,7 @@ class ContextConsumerElement extends FASTElement {
   constructor() {
     super();
     defineConsumer(this, 'value', {context: simpleContext, subscribe: true});
-    defineConsumer(this, 'onceValue', {context: simpleContext})
+    defineConsumer(this, 'onceValue', {context: simpleContext});
   }
 }
 
@@ -53,17 +53,15 @@ class LateContextProviderElement extends FASTElement {
         <slot></slot>
       </div>
     `,
-    attributes: [
-      {property: 'value', converter: nullableNumberConverter}
-    ]
-  }
+    attributes: [{property: 'value', converter: nullableNumberConverter}],
+  };
 
   public value = 0;
 
   constructor() {
     super();
 
-    defineProvider(this, 'value', {context: simpleContext})
+    defineProvider(this, 'value', {context: simpleContext});
   }
 }
 
@@ -159,7 +157,10 @@ suiteSkipIE('late context provider', () => {
     assert.strictEqual(consumer.onceValue, 0);
 
     // Define provider element
-    FASTElement.define(class extends LateContextProviderElement{}, {...LateContextProviderElement.definition, name: 'late-context-provider-nested'});
+    FASTElement.define(class extends LateContextProviderElement {}, {
+      ...LateContextProviderElement.definition,
+      name: 'late-context-provider-nested',
+    });
 
     DOM.processUpdates();
 
@@ -220,8 +221,14 @@ suiteSkipIE('late context provider', () => {
 
       constructor() {
         super();
-        defineConsumer(this, 'value1', {context: simpleContext, subscribe: true})
-        defineConsumer(this, 'value2', {context: simpleContext, subscribe: true})
+        defineConsumer(this, 'value1', {
+          context: simpleContext,
+          subscribe: true,
+        });
+        defineConsumer(this, 'value2', {
+          context: simpleContext,
+          subscribe: true,
+        });
       }
     }
 
@@ -239,7 +246,10 @@ suiteSkipIE('late context provider', () => {
     DOM.processUpdates();
 
     // Define provider element
-    FASTElement.define(class extends LateContextProviderElement{}, {...LateContextProviderElement.definition, name: 'late-context-provider-2'});
+    FASTElement.define(class extends LateContextProviderElement {}, {
+      ...LateContextProviderElement.definition,
+      name: 'late-context-provider-2',
+    });
 
     DOM.processUpdates();
 
@@ -291,7 +301,10 @@ suiteSkipIE('late context provider', () => {
     DOM.processUpdates();
 
     // Define provider element
-    FASTElement.define(class extends LateContextProviderElement{}, {...LateContextProviderElement.definition, name:'late-context-provider-3'});
+    FASTElement.define(class extends LateContextProviderElement {}, {
+      ...LateContextProviderElement.definition,
+      name: 'late-context-provider-3',
+    });
 
     DOM.processUpdates();
 
