@@ -2,7 +2,7 @@
 
 ## Overview
 
-This package defines an implementation of controllers and decorators for using the [Context Protocol](https://github.com/webcomponents-cg/community-protocols/blob/main/proposals/context.md) as defined by the Web Components Community Group.
+This package defines an implementation of controllers for using the [Context Protocol](https://github.com/webcomponents-cg/community-protocols/blob/main/proposals/context.md) as defined by the Web Components Community Group with [FASTElement v1](https://github.com/microsoft/fast).
 
 This protocol facilitates the communication between components lower in the DOM hierarchy with their ancestors, allowing data to be passed down the tree without having to be passed via 'prop drilling' where each element in the path passes on the data.
 
@@ -35,20 +35,24 @@ export const loggerContext = createContext<Logger>('logger');
 
 Now we can define a consumer for this context - some component in our app needs the logger.
 
-Here we're using the `@consume` property decorator to make a `ContextConsumer` controller
+Here we're using the `defineConsumer` helper to add a `ContextConsumer` behavior
 and update its value when the context changes:
 
 #### **`my-element.ts`**:
 
 ```ts
 import {FASTElement, observable} from '@microsoft/fast-element';
-import {consume} from 'fast-context';
+import {defineConsumer} from 'fast-context';
 import {Logger, loggerContext} from './logger.js';
 
 export class MyElement extends FASTElement {
-  @consume({context: loggerContext, subscribe: true})
   @observable()
   public logger?: Logger;
+
+  constructor() {
+    super();
+    defineConsumer(this, 'logger', {context: loggerContext, subscribe: true});
+  }
 
   private doThing() {
     this.logger?.log('a thing was done');
@@ -56,7 +60,7 @@ export class MyElement extends FASTElement {
 }
 ```
 
-Another way we can use a context in a component is via the `ContextConsumer` controller directly:
+Another way we can use a context in a component is via the `ContextConsumer` behavior directly:
 
 #### **`my-element.ts`**:
 
@@ -66,12 +70,10 @@ import {ContextConsumer} from 'fast-context';
 import {Logger, loggerContext} from './logger.js';
 
 export class MyElement extends FASTElement {
-  public logger = new ContextConsumer(
-    this,
-    loggerContext,
-    undefined, // don't need to pass a callback
-    true // pass true to get updates if the logger changes
-  );
+  public logger = new ContextConsumer(this, {
+    context: loggerContext,
+    subscribe: true // pass true to get updates if the logger changes
+  });
 
   private doThing() {
     this.logger.value?.log('a thing was done');
@@ -83,8 +85,8 @@ export class MyElement extends FASTElement {
 
 Finally we want to be able to provide this context from somewhere higher in the DOM.
 
-Here we're using a `@provide` property decorator to make a `ContextProvider`
-controller and update its value when the property value changes.
+Here we're using the `defineProvider` helper to add a `ContextProvider`
+behavior and update its value when the property value changes.
 
 #### **`my-app.ts`**:
 
@@ -94,7 +96,6 @@ import {provide} from 'fast-context';
 import {loggerContext, Logger} from './logger.js';
 
 export class MyApp extends FASTElement {
-  @provide({context: loggerContext})
   @observable
   public logger: Logger = {
     log: (msg) => {
@@ -102,13 +103,14 @@ export class MyApp extends FASTElement {
     },
   });
 
-  protected render(): TemplateResult {
-    return html`<my-thing></my-thing>`;
+  constructor() {
+    super();
+    defineProvider(this, 'logger', {context: loggerContext});
   }
 }
 ```
 
-We can also use the `ContextProvider` controller directly:
+We can also use the `ContextProvider` behavior directly:
 
 #### **`my-app.ts`**:
 
@@ -124,10 +126,6 @@ export class MyApp extends LitElement {
       console.log(`[my-app] ${msg}`);
     },
   });
-
-  protected render(): TemplateResult {
-    return html`<my-thing></my-thing>`;
-  }
 
   public setLogger(newLogger: Logger) {
     // update the provider with a new logger value
@@ -185,13 +183,3 @@ The `ContextRoot` can be attached to any element and it will gather a list of an
 This solution has a small overhead, in that if a provider is not within the DOM hierarchy of the unsatisfied requests we are unnecessarily refiring these requests, but this approach is safest and most correct in that it is very hard to manage unstable DOM hierarchies with the semantics of slotting and reparenting that is common in web components implementations.
 
 Note that ContextRoot uses [WeakRefs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakRef) which are not supported in IE11.
-
-### Protected / Private Properties
-
-You can use the `@consume` and `@provide` decorators on TypeScript `protected` and `private` properties, but be aware that there is no type checking between the type of the context and the type of the property. This is because the TypeScript compiler does not make type information for protected or private properties available to decorators. Standard `#private` properties are not supported at all.
-
-We expect to fix all of this when we switch to standard decorators. See [#3926](https://github.com/lit/lit/issues/3926).
-
-## Contributing
-
-Please see [CONTRIBUTING.md](../../../CONTRIBUTING.md).
