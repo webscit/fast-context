@@ -183,3 +183,9 @@ The `ContextRoot` can be attached to any element and it will gather a list of an
 This solution has a small overhead, in that if a provider is not within the DOM hierarchy of the unsatisfied requests we are unnecessarily refiring these requests, but this approach is safest and most correct in that it is very hard to manage unstable DOM hierarchies with the semantics of slotting and reparenting that is common in web components implementations.
 
 Note that ContextRoot uses [WeakRefs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakRef) which are not supported in IE11.
+
+# Sponsors
+
+We are very grateful to our sponsors without which this works would not have been possible:
+
+[![twiinIT](https://twiinit.com/images/twiinIT_logo_left_no_subtitle.svg)](https://twiinit.com)
