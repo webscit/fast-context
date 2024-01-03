@@ -4,7 +4,7 @@
 //  * SPDX-License-Identifier: BSD-3-Clause
 //  */
 
-// import {Context, consume, provide} from 'fast-context';
+// import {Context, consume, provide} from 'fast-element-context';
 // import {assert} from '@esm-bundle/chai';
 // import {DOM, FASTElement, attr, customElement, html, nullableNumberConverter} from '@microsoft/fast-element';
 

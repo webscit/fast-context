@@ -1,5 +1,5 @@
 // import {FASTElement} from '@microsoft/fast-element';
-// import {createContext, consume, provide} from 'fast-context';
+// import {createContext, consume, provide} from 'fast-element-context';
 
 // const numberContext = createContext<number>('number');
 // const numberOrUndefinedContext = createContext<number | undefined>(

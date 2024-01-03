@@ -1,5 +1,5 @@
 {
-  "name": "fast-context",
+  "name": "fast-element-context",
   "version": "0.1.0",
   "description": "Helpers and controllers for using Context protocol with FAST elements",
   "license": "BSD-3-Clause",

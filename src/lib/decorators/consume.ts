@@ -26,7 +26,7 @@
 //  * @example
 //  *
 //  * ```ts
-//  * import {consume} from 'fast-context';
+//  * import {consume} from 'fast-element-context';
 //  * import {loggerContext, Logger} from 'community-protocols/logger';
 //  *
 //  * class MyElement {

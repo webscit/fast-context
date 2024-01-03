@@ -22,7 +22,7 @@ import {
   createContext,
   defineConsumer,
   defineProvider,
-} from 'fast-context';
+} from 'fast-element-context';
 import {assert} from '@esm-bundle/chai';
 
 const simpleContext = 'simple-context' as Context<'simple-context', number>;

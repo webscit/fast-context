@@ -13,7 +13,7 @@ import {
   nullableNumberConverter,
 } from '@microsoft/fast-element';
 
-import {ContextProvider, Context, ContextConsumer} from 'fast-context';
+import {ContextProvider, Context, ContextConsumer} from 'fast-element-context';
 import {assert} from '@esm-bundle/chai';
 
 const simpleContext = 'simple-context' as Context<'simple-context', number>;
