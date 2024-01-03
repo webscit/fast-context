@@ -24,7 +24,7 @@
 //  * @example
 //  *
 //  * ```ts
-//  * import {provide} from 'fast-context';
+//  * import {provide} from 'fast-element-context';
 //  * import {Logger} from 'my-logging-library';
 //  * import {loggerContext} from './logger-context.js';
 //  *

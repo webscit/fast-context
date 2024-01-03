@@ -1,4 +1,4 @@
-# fast-context
+# fast-element-context
 
 ## Overview
 
@@ -22,7 +22,7 @@ First lets define a context key we can use elsewhere in our examples:
 #### **`logger.ts`**:
 
 ```ts
-import {createContext} from 'fast-context';
+import {createContext} from 'fast-element-context';
 
 export interface Logger {
   log: (msg: string) => void;
@@ -42,7 +42,7 @@ and update its value when the context changes:
 
 ```ts
 import {FASTElement, observable} from '@microsoft/fast-element';
-import {defineConsumer} from 'fast-context';
+import {defineConsumer} from 'fast-element-context';
 import {Logger, loggerContext} from './logger.js';
 
 export class MyElement extends FASTElement {
@@ -66,7 +66,7 @@ Another way we can use a context in a component is via the `ContextConsumer` beh
 
 ```ts
 import {FASTElement} from '@microsoft/fast-element';
-import {ContextConsumer} from 'fast-context';
+import {ContextConsumer} from 'fast-element-context';
 import {Logger, loggerContext} from './logger.js';
 
 export class MyElement extends FASTElement {
@@ -92,7 +92,7 @@ behavior and update its value when the property value changes.
 
 ```ts
 import {FASTElement, observable, html} from '@microsoft/fast-element';
-import {provide} from 'fast-context';
+import {provide} from 'fast-element-context';
 import {loggerContext, Logger} from './logger.js';
 
 export class MyApp extends FASTElement {
@@ -116,7 +116,7 @@ We can also use the `ContextProvider` behavior directly:
 
 ```ts
 import {FASTElement, html} from '@microsoft/fast-element';
-import {ContextProvider} from 'fast-context';
+import {ContextProvider} from 'fast-element-context';
 import {loggerContext, Logger} from './logger.js';
 
 export class MyApp extends LitElement {
@@ -140,7 +140,7 @@ useful to provide a context provider without introducing a custom element:
 #### **`my-app.js`**:
 
 ```js
-import {ContextProvider} from 'fast-context';
+import {ContextProvider} from 'fast-element-context';
 import {loggerContext, Logger} from './logger.js';
 
 // create a provider for the whole document body.

@@ -14,7 +14,7 @@ import {
   nullableNumberConverter,
 } from '@microsoft/fast-element';
 
-import {createContext, defineConsumer, defineProvider} from 'fast-context';
+import {createContext, defineConsumer, defineProvider} from 'fast-element-context';
 import {assert} from '@esm-bundle/chai';
 import {memorySuite} from './test_util.js';
 

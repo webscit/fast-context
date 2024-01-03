@@ -6,7 +6,7 @@
 //  */
 
 // import {DOM, FASTElement, html, nullableNumberConverter} from '@microsoft/fast-element';
-// import {createContext, consume, provide} from 'fast-context';
+// import {createContext, consume, provide} from 'fast-element-context';
 // import {assert} from '@esm-bundle/chai';
 
 // const simpleContext = createContext<number>('simple-context');
