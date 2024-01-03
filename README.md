@@ -72,7 +72,7 @@ import {Logger, loggerContext} from './logger.js';
 export class MyElement extends FASTElement {
   public logger = new ContextConsumer(this, {
     context: loggerContext,
-    subscribe: true // pass true to get updates if the logger changes
+    subscribe: true, // pass true to get updates if the logger changes
   });
 
   private doThing() {

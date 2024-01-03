@@ -45,8 +45,15 @@
     "test_:prod": "MODE=prod node ../tests/run-web-tests.js \"development/**/*_test.js\" --config ../tests/web-test-runner.config.js",
     "checksize": "npm run build:ts && rollup -c --environment=CHECKSIZE"
   },
-  "author": {"name": "Frederic Collonval"},
-  "contributors": [{"name": "twiinIT", "url": "https://twiinit.com"}],
+  "author": {
+    "name": "Frederic Collonval"
+  },
+  "contributors": [
+    {
+      "name": "twiinIT",
+      "url": "https://twiinit.com"
+    }
+  ],
   "dependencies": {
     "@microsoft/fast-element": "^1.12.0"
   },
